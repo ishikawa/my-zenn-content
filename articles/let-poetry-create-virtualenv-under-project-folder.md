@@ -3,7 +3,7 @@ title: "Poetry の virtualenv を VSCode に認識させる"
 emoji: "🐤"
 type: "tech"
 topics: ["python", "vscode", "poetry"]
-published: false
+published: true
 ---
 
 ## この記事で分かること
