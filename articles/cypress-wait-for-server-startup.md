@@ -60,7 +60,12 @@ Please start this server and then run Cypress again.
 
 当初は「接続確認のリトライ回数を増やせばいいだろう」と考えていたのだが、残念ながらそれはできないらしい[^2]（[失敗したテストのリトライ](https://docs.cypress.io/guides/guides/test-retries.html)はできる）。
 
-というわけで、件の Issue でも紹介されている [bahmutov/start-server-and-test](https://github.com/bahmutov/start-server-and-test) を試してみることにした。
+というわけで、件の Issue でも紹介されている [bahmutov/start-server-and-test](https://github.com/bahmutov/start-server-and-test) を試してみることにした。この npm モジュールを使うことで、
+
+1. サーバが起動し、指定されたエンドポイントに接続できるまで待機
+2. 接続が確認できたらテストを実行
+
+することができる（なので、サーバを起動するステップと cypress を実行するステップはひとつにまとめられる）。
 
 ## start-server-and-test のセットアップ
 
