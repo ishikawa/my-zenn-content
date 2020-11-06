@@ -1,5 +1,5 @@
 ---
-title: "Babel プラグインを TypeScript で開発するときの型"
+title: "Babel プラグインを TypeScript で開発する"
 emoji: "⚡️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["typescript", "babel"]
