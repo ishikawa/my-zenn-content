@@ -12,11 +12,7 @@ published: true
 
 :::
 
-:::message
 
-この方法でもうまくいかない場合は、[続編](https://zenn.dev/takanori_is/articles/cypress-wait-for-server-startup-returns)もあります😔
-
-:::
 
 サーバの起動を待ってからフロントエンドのテストを実行したければ、[bahmutov/start-server-and-test](https://github.com/bahmutov/start-server-and-test) が使えるよ。
 

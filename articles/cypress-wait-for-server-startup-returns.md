@@ -3,7 +3,7 @@ title: "Cypress をサーバ起動まで待機させる Returns"
 emoji: "🚀"
 type: "tech"
 topics: ["javascript", "e2e", "test"]
-published: true
+published: false
 ---
 
 前回、サーバが起動するまで cypress を待機させるために [start-server-and-test を導入](https://zenn.dev/takanori_is/articles/cypress-wait-for-server-startup)したが、それでも偶に（時と場合によっては頻繁に）エラーが出てしまう。
