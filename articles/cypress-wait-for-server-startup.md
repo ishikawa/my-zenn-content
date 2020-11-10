@@ -6,6 +6,12 @@ topics: ["javascript", "e2e", "test"]
 published: true
 ---
 
+:::message alert
+
+[公式ドキュメント](https://docs.cypress.io/guides/guides/continuous-integration.html#Boot-your-server)に同様の記述があるので、この記事ではなくそちらを参照してください。
+
+:::
+
 サーバの起動を待ってからフロントエンドのテストを実行したければ、[bahmutov/start-server-and-test](https://github.com/bahmutov/start-server-and-test) が使えるよ。
 
 …ということを書き残しておきたかった。記事の残りは背景説明と簡単なセットアップ方法の紹介なので、急いでいる人は読む必要はない。とりあえず、上記の start-server-and-test を導入して、
