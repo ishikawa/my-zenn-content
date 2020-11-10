@@ -3,7 +3,7 @@ title: "Cypress をサーバ起動まで待機させる Returns"
 emoji: "🚀"
 type: "tech"
 topics: ["javascript", "e2e", "test"]
-published: false
+published: true
 ---
 
 前回、サーバが起動するまで cypress を待機させるために [start-server-and-test を導入](https://zenn.dev/takanori_is/articles/cypress-wait-for-server-startup)したが、それでも偶に（時と場合によっては頻繁に）エラーが出てしまう。
@@ -53,33 +53,34 @@ $ docker run --rm -it -w /code -v $(pwd):/code circleci/node:12.18-browsers /bin
 
 しかし、ローカルで実行すると安定して動いてしまう。
 
-## 解決策
+## 原因は webpack の worker 数
 
-webpack-dev-server の出力を抑えたり、CircleCI で失敗したステップのリトライを実装したり試行錯誤をしてみたが、結局、**サーバをバックグランドで起動して、curl で起動を待つ**、という泥臭い実装を試してみたところ安定して動いた。
+webpack-dev-server の出力を抑えたり、CircleCI で失敗したステップのリトライを実装したり、curl で再実装したりと試行錯誤を繰り返してみたが、なかなか安定しない。しかし、何度か試すうちに **webpack-dev-server 単体でも EPIPE が発生している**ことを確認できた。
 
-```yaml
-- run:
-    name: Start server for e2e
-    command: |
-      npx webpack-dev-server --port 3300 --quiet
-    background: true
-- run:
-    name: Wait on the server startup
-    no_output_timeout: 10m
-    command: |
-      # disable error temporally
-      set +e
-      while ! curl --silent http://localhost:3300 > /dev/null
-      do
-        sleep 1
-        # Try to reconnect...
-      done
-      set -e
-- run:
-    name: Run e2e
-    command: |
-      npx cypress run
+Webpack は全くの素人なのだが、[Webpackのビルド時間を短くするための取り組み - freee Developers Blog](https://developers.freee.co.jp/entry/2017/12/25/163006) によると、ビルドには worker プロセスを起動しているようなので、このへんが怪しいと推測（サブプロセスと通信しており、それなら EPIPE が発生しそう）。
+
+[thread-loader](https://github.com/webpack-contrib/thread-loader) のドキュメントを斜め読みしながら、手元の環境の設定を確認してみると以下のようになっていた。
+
+```javascript
+const workerPool = {
+  workers: require('os').cpus().length - 1,
+  poolTimeout: Infinity,
+  workerParallelJobs: 30,
+  name: 'build-js-pool'
+};
 ```
 
-- CircleCI の各ステップは [`set -e` されている](https://support.circleci.com/hc/en-us/articles/115015733328-Step-should-fail-but-job-finished-successfully)ので、そのままだと curl が接続に失敗した時点でジョブ自体が失敗してしまう。そのため、`set +e` で一時的にスイッチを off にしている
-- "Wait on the server startup" では、出力を一切せずに `no_output_timeout` オプションでタイムアウトを設定している
+これだと、CI 環境で報告される CPU コア数が多いと簡単にメモリ不足になりそうだ。実際に、CircleCI で実行するときに `workerPool` の中身を確認すると `workers = 35` だった。さすがにこれは多すぎる。
+
+最終的に、以下のように変更することで対処した。
+
+```Javascript
+const workerPool = {
+  workers: (process.env.CI ? 4 : require('os').cpus().length - 1),
+  poolTimeout: Infinity,
+  workerParallelJobs: 30,
+  name: 'build-js-pool'
+};
+```
+
+もちろん、`4` は適当な数なので各自の環境に合わせて調整してほしい。
