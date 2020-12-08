@@ -3,24 +3,24 @@ title: "Babel プラグインを書いて React Hooks 時代に追いつく"
 emoji: "🎃"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["react", "babel"]
-published: false
+published: true
 ---
 
 _この記事は [ABEJA Advent Calendar 2020](https://qiita.com/advent-calendar/2020/abeja) の 8 日目の記事です。_
 
-どうも、こんにちは。株式会社 ABEJA の石川です。今年興奮した技術的トピックは [Erlang VM の JIT コンパイラ](https://github.com/erlang/otp/pull/2745) と Apple の M1 チップです。よろしくお願いします。**MacBook Air は最高の体験ですね。**
+こんにちは。そろそろ年末。今年興奮した技術的トピックは [Erlang VM の JIT コンパイラ](https://github.com/erlang/otp/pull/2745) と Apple の M1 チップです。よろしくお願いします。**MacBook Air は最高のユーザー体験ですね。**
 
 ![](https://github.com/ishikawa/my-zenn-content/blob/main/articles/convert-legacy-code-with-home-brewed-babel-plugin/MacBookAir.jpg?raw=true)
 
-去年[^1]と一昨年[^2]は、機械学習プラットフォーム [ABEJA Platform](https://developers.abeja.io/) の使い方について書きましたが、今年は少し趣向を変えて、開発の舞台裏について書いてみたいと思います。
+去年[^1]と一昨年[^2]は、機械学習プラットフォーム [ABEJA Platform](https://developers.abeja.io/) の使い方について書きましたが、今年は趣向を変え、開発の舞台裏について書いてみたいと思います。
 
-もともと、言語処理系やコンパイラに興味がある[^3]のですが、最近ではこの趣味を実務に活かすべく、**React アプリケーションの自動コード変換**に取り組んでいる、というお話です。
+もともと、言語処理系やコンパイラに興味がある[^3]人間なので、最近ではこの趣味を実務に活かすべく、**React アプリケーションの自動コード変換**に取り組んでいる、というお話です。
 
 ## これまでの ABEJA Platform の Web フロントエンドは...
 
-ABEJA Platform の Web フロントエンドは 2017 年 9 月から開発をはじめました。
+ABEJA Platform は Web フロントエンドも備えていますが、その開発は 2017 年 9 月からはじまりました。
 
-DOM のレンダリングに React を採用し、ステート管理には Redux と非同期通信のミドルウェアに Redux-Observable、Babel によるトランスパイルと Flow による型チェック、バンドラーに Webpack を採用していました。途中、プロトタイプ時に使っていた Material UI から Semantic UI への変更はあったものの、今でもこの構成は大きくは変わっていません。
+DOM のレンダリングに [React](https://reactjs.org/) を採用し、ステート管理には [Redux](https://redux.js.org/) と非同期通信のミドルウェアに [redux-observable](https://redux-observable.js.org/)、[Babel](https://babeljs.io/) によるトランスパイルと [Flow](https://flow.org/) による型チェック、バンドラーに [Webpack](https://webpack.js.org/) を採用していました。途中、プロトタイプ時に使っていた [Material UI](https://material-ui.com/) から [Semantic UI](https://semantic-ui.com/) への変更はあったものの、現在でもこの構成は大きく変わってはいません。
 
 ![](https://github.com/ishikawa/my-zenn-content/blob/main/articles/convert-legacy-code-with-home-brewed-babel-plugin/ABEJAPlatform.png?raw=true)
 
@@ -30,14 +30,14 @@ DOM のレンダリングに React を採用し、ステート管理には Redux
 
 しかし、時代は移ろい、昨年の 2 月にリリースされた [React 16.8](https://reactjs.org/blog/2019/02/06/react-v16.8.0.html) から、世はまさに **React Hooks 時代**です。Hooks の導入以降、クラスによるコンポーネントの実装は第一選択とはならず、関数コンポーネントと Hooks の利用が主流になっています。
 
-ABEJA Platform でも、昨年の 3 月末に React 16.8.6 に更新し、Hooks が使える状態になっていましたが、その利用はせいぜい、
+ABEJA Platform でも、昨年の 3 月末に React を 16.8.6 に更新し、Hooks が使える状態になっていましたが、その利用はせいぜい、
 
 - 新しく書くコンポーネントは、できるだけ関数コンポーネントで実装する
-- Hooks は組み込みの `useState()` と `useEffect()` のみ
+- Hooks は組み込みの `useState()` と `useEffect()` のみ利用する
 
-程度に収まっていました。
+程度に留まっていました。
 
-しかし、[React 17.0 のアナウンス](https://reactjs.org/blog/2020/10/20/react-v17.html)をきっかけに、フロントエンドの技術スタックをアップデートする気運が（個人的に）高まり、以下のようなアップデートを進めています。
+しかし、[React 17.0 のアナウンス](https://reactjs.org/blog/2020/10/20/react-v17.html)をきっかけに、フロントエンドの技術スタックをアップデートする気運が（個人的に）高まり、目下のところ次のようなアップデートを進めています。
 
 1. React を含む各種ライブラリのアップデート
 2. 既存コードを関数コンポーネントに書き換える
@@ -46,7 +46,7 @@ ABEJA Platform でも、昨年の 3 月末に React 16.8.6 に更新し、Hooks 
 
 現在は上記のうち、4 の調査と移行を試しながら、3 を進めている状態ですが、既存コードの変換は手作業ではなく、**Babel プラグインによる自動変換**というアプローチを採用しています。
 
-この記事の目的は、このコード変換について紹介することですが、まずはどうして関数コンポーネントと Hooks に移行するのかを理解してもらうため、これらの利点と背景について説明します。
+この記事の目的は、Babel プラグインの開発とコード変換について解説することです。とはいえ、まずは、どうして関数コンポーネントと Hooks に移行するのかを理解してもらうために、これらの利点と背景について説明します。
 
 ### 関数コンポーネントと Hooks
 
@@ -118,7 +118,7 @@ type Props = StateProps & DispatchProps & OwnProps
 
 の 3 つで構成されており、これらを TypeScript の [Intersection Types](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html#intersection-types) を用いて合成します。
 
-バージョン 7.12 からは [`ConnectedProps` 型を使うことで若干楽になりました](https://react-redux.js.org/using-react-redux/static-typing#inferring-the-connected-props-automatically)が、これはこれで今までの `connect` に慣れた身からすると煩雑さと違和感を感じます。
+バージョン 7.12 からは [`ConnectedProps` 型を使うことで若干楽になりました](https://react-redux.js.org/using-react-redux/static-typing#inferring-the-connected-props-automatically)が、これはこれで今までの `connect` の書き方に慣れた身からすると煩雑さと違和感を感じます。
 
 一方、Hooks の場合は HOC とは異なり props を追加するわけではないのと、TypeScript の型推論もあるため、多くの場合、冗長な型定義は必要ありません。
 
@@ -134,7 +134,7 @@ const selectIsOn = (state: RootState) => state.isOn
 const isOn = useSelector(selectIsOn)
 ```
 
-実際に React Redux のドキュメントでも [Hooks API の方が簡単だと紹介されています](https://react-redux.js.org/using-react-redux/static-typing#recommendations)。
+実際に React Redux のドキュメントでも [Hooks API の方が静的型付けは簡単だと紹介されています](https://react-redux.js.org/using-react-redux/static-typing#recommendations)。
 
 ABEJA Platform のコードでも現状、Flow を用いて型付けをしているため同様の冗長な型定義が必要になっている[^6]のですが、TypeScript に移行するときは Hooks を利用して簡潔なコードにしたいところです。
 
@@ -157,11 +157,11 @@ Hooks を使うことで、開発者はコンポーネントの階層構造を�
 
 もちろん、フロントエンド開発も例外ではなく、webpack などのバンドラーが不要なコードを削除する [Tree Shaking](https://webpack.js.org/guides/tree-shaking/) は JavaScript における [Dead-Code Elimination](https://en.wikipedia.org/wiki/Dead_code_elimination) ですし、React の [JSX](https://reactjs.org/docs/jsx-in-depth.html) は `React.createElement(...)` の [Syntax Sugar](https://en.wikipedia.org/wiki/Syntactic_sugar) です。[^14]
 
-昨今のフロントエンドフレームワークでも、コンパイラ技術は取り入れられています。[Anglar](https://angular.io/) 2 以降では[ AOT コンパイルの導入](https://angular.io/guide/aot-compiler)により、テンプレートの事前コンパイルと[定数畳み込み](https://en.wikipedia.org/wiki/Constant_folding)による最適化が可能です。
+昨今のフロントエンドフレームワークでも、コンパイラ技術は取り入れられています。[Anglar](https://angular.io/) 2 以降では[ AOT コンパイルの導入](https://angular.io/guide/aot-compiler)により、テンプレートの事前コンパイルと[定数畳み込み](https://en.wikipedia.org/wiki/Constant_folding)による最適化が可能になりました。
 
-[Svelte](https://svelte.dev/) フレームワークではこれを更に進めて、AOT コンパイルされた結果には Svelte のランタイムは不要であり、React のような[変更検知のための複雑なアルゴリズム](https://reactjs.org/docs/reconciliation.html)も必要ありません。[^15]
+[Svelte](https://svelte.dev/) フレームワークではこれを更に押し進めて、AOT コンパイルされた結果には Svelte のランタイムは不要であり、React のような[変更検知のための複雑なアルゴリズム](https://reactjs.org/docs/reconciliation.html)も必要ありません。[^15]
 
-Facebook のプロジェクトで、JavaScript を AOT コンパイルして最適化を行う [Prepack](https://prepack.io/frequently-asked-questions.html) が数年前に話題になりましたが、その流れで React コンポーネントの畳み込み、インライン化も検討されていたようです。[^16]
+一方の React ですが、現状、AOT は取り入れられていません。しかし、Facebook のプロジェクトで、JavaScript を AOT コンパイルして最適化を行う [Prepack](https://prepack.io/frequently-asked-questions.html) が数年前に話題になったことを覚えているでしょうか？　その流れで React コンポーネントの畳み込み、インライン化も検討されていたようです。[^16]
 
 これは、たとえば、以下のようなコンポーネント `Bar` があったときに:
 
@@ -192,7 +192,7 @@ function Bar(props) {
 }
 ```
 
-以下のように変換してしまおう、というものです。
+以下のように変換してしまおう、というものです。定数畳み込みとインライン化で `Foo` や `Classes` が姿を消しているのがわかります。
 
 ```javascript:Bar.js
 function Bar_optimized(props) {
@@ -200,20 +200,20 @@ function Bar_optimized(props) {
 }
 ```
 
-もちろん、これは単純に置き換えるだけでは駄目で、[エスケープ解析](https://en.wikipedia.org/wiki/Escape_analysis)などで `CSSClasses` と `Foo.defaultProps` が変更されないことを保証する必要があります。しかも、これが関数コンポーネントではなく、より複雑なセマンティクスを持つクラスコンポーネントでは、変換が難しくなるのは明白でしょう。
+もちろん、単純に置き換えるだけでは駄目で、[エスケープ解析](https://en.wikipedia.org/wiki/Escape_analysis)などで `CSSClasses` と `Foo.defaultProps` が変更されないことを保証する必要があります。しかも、これが関数コンポーネントではなく、より複雑なセマンティクスを持つクラスコンポーネントでは、変換が難しくなるのは明白でしょう。
 
-今後、AOT コンパイルを含むコンパイラ最適化が React に導入された場合も、変換できない (あるいは、変換可能かどうかが簡単には判別できない) ケースでは、最適化が施されずに「遅い」コードパスが実行されることが予想できます。このことを考慮しても、コンポーネントはクラスよりも関数で実装した方が将来の最適化の恩恵を受けられる可能性が高まります。
+今後、AOT コンパイルを含むコンパイラ最適化が React に導入された場合も、変換できない (あるいは、変換可能かどうかが簡単には判別できない) ケースでは、最適化が施されずに「遅い」コードパスが実行されることが予想できます。このことを考慮すると、コンポーネントはクラスよりも関数で実装した方が将来の最適化の恩恵を受けられる可能性が高まります。
 
 ## Hooks に乗り換える
 
-さて、長い前置きはここまでです。
+さて、**長い前置き**はここまでです。
 
-先に説明した通り、現在は Hooks への移行のために、
+先に説明した通り、現在は ABEJA Platform のコードベースを Hooks へ移行するために、
 
 - 既存コードを関数コンポーネントに書き換え
 - 各種ライブラリが提供する Hooks を積極的に使う
 
-ように、コードベースを変更しているところです。また、変更は手作業ではなく、**Babel プラグインによる自動変換**というアプローチを採用しています。
+ように変更しているところです。また、変更は手作業ではなく、**Babel プラグインによる自動変換**というアプローチを採用しています。
 
 以降では「react-intl の `injectIntl` HOC を `useIntl` Hooks に置き換える変換」を例に、具体的な変換処理の説明と何故このようなアプローチを採用したかの説明もしたいと思います。
 
@@ -221,7 +221,7 @@ function Bar_optimized(props) {
 
 Hooks を利用できるのは関数コンポーネントのみであるため、まず、同様の自動変換のアプローチで、**既存コードを関数コンポーネントに書き換え**ました。当然、変換できないケースもありましたが、ここで約 100 個のクラスコンポーネントを関数コンポーネントに書き換えました。
 
-ただ、関数コンポーネントへの変換処理は複雑なのと、ABEJA Platform のコードベースに依存した変換が大分め、ブログで紹介しても散漫な内容になりそうです。今回は分かりやすい例として **react-intl の `injectIntl` HOC を `useIntl` Hooks に置き換える変換**を紹介します。
+ただ、関数コンポーネントへの変換処理は複雑なのと、ABEJA Platform のコードベースに依存した変換が多いため、ブログで紹介しても散漫な内容になりそうです。今回は分かりやすい例として **react-intl の `injectIntl` HOC を `useIntl` Hooks に置き換える変換**を紹介します。
 
 これは簡単に言えば、以下のような JavaScript コードがあったとして、
 
@@ -239,7 +239,7 @@ function MyComponent(props: Props) {
 export default injectIntl(MyComponent);
 ```
 
-このコードを以下のように変換します。
+このコードを以下のように変換する、ということです。
 
 ```javascript
 import { useIntl } from 'react-intl';
@@ -267,7 +267,7 @@ export default MyComponent;
 - 大量のファイルに一気に適用でき、
 - 差分がコンフリクトする場合は、簡単にやり直せる
 
-ようにしておくのが良さそうです。なによりプログラマなので**退屈な単純作業には堪えられない**、という理由が大きいです。
+ようにしておくのが良さそうです。なによりプログラマなので**退屈な単純作業ばかりだと精神が崩壊してしまいます**。
 
 #### 正規表現による置換
 
@@ -279,9 +279,9 @@ export default MyComponent;
 s/injectIntl\((\w+)\)/$1/
 ```
 
-まあ、こんな正規表現で行けそうですし、新しめの正規表現エンジンであれば再帰パターンも扱えるのでネストした構造を含むプログラムの変換もそれなりにできたりします。[^17]
+まあ、こんな正規表現でいける気がしますし、新しめの正規表現エンジンであれば再帰パターンも扱えるのでネストした構造を含むプログラムの変換もそれなりにできそうです。[^17]
 
-しかし、文字列中の扱いなど対応できないエッジケースは存在しますし、空白・改行の無視や共通するパターンを変数化したりすると、あっというまにメンテナンス不能なコードになってしまいます (読むのも書くのも苦痛)。
+しかし、文字列中の扱いなど対応できないケースは存在しますし、空白・改行の無視や共通するパターンを変数化したりすると、あっというまにメンテナンス不能なコードになってしまいます (読むのも書くのも苦痛)。
 
 やはり、ここは、変換対象の JavaScript コードを一度、**抽象構文木 (Abstract Syntax Tree; AST) に変換しましょう。**
 
@@ -304,11 +304,11 @@ ABEJA Platform では既に Babel を導入済みであったことや、ある�
 
 ## Babel プラグインを書く
 
-ここからは実際のコードを紹介しながら、どのように react-intl の `injectIntl` HOC を `useIntl` Hooks に置き換えるかを説明していきます。
+ここからは実際のコードを紹介しながら、どのように react-intl の `injectIntl` HOC を `useIntl` Hooks に置き換えたかを説明していきます。
 
-一般的な Babel プラグインの書き方や導入については、すでに有用な情報がインターネットで公開されているため、ここでは立ち入りません。今回参照した中では [Babel Plugin Handbook](https://github.com/jamiebuilds/babel-handbook/blob/master/translations/en/plugin-handbook.md) が情報も正確でもっとも役に立ちました。
+一般的な Babel プラグインの書き方や導入については、すでに有用な情報がインターネット上で公開されているため、ここでは立ち入りません。今回参照した中では [Babel Plugin Handbook](https://github.com/jamiebuilds/babel-handbook/blob/master/translations/en/plugin-handbook.md) が情報も正確でもっとも役に立ちました。
 
-### ガイドライン
+### ガイドラインと補足
 
 プラグインの書き方以外で、個人的に特筆しておきたい点がいくつかあります。
 
@@ -329,11 +329,11 @@ if (
 }
 ```
 
-また、プラグインの開発中は [@babel/types](https://babeljs.io/docs/en/babel-types) のメソッドを何度も呼ぶことになりますが、これだけ大量のメソッドがあると VSCode による補完がないとやってられません。
+また、プラグインの開発中は [@babel/types](https://babeljs.io/docs/en/babel-types) のメソッドを何度も呼ぶことになりますが、大量のメソッドがあるため VSCode による補完がないとやってられません。
 
 #### AST Explorer は友達
 
-[AST Explorer](https://astexplorer.net/) を使うと、JavaScript コードの AST 表現を即座に確認できます。プラグイン開発においてはなくてはならないツールなので、ぜひ使い方を覚えて、いつでも参照できるようにしておきましょう。
+[AST Explorer](https://astexplorer.net/) を使うと、JavaScript コードの AST 表現を即座に確認できます。プラグイン開発において、なくてはならないツールなので、使い方を覚えていつでも参照できるようにしておきましょう。
 
 ![ASTExplorer](https://github.com/ishikawa/my-zenn-content/blob/main/articles/convert-legacy-code-with-home-brewed-babel-plugin/ASTExplorer.png?raw=true)
 
@@ -351,7 +351,7 @@ export default injectIntl(MyComponent);
 export default MyComponent;
 ```
 
-変換するケースを考えてみましょう。これを Babel プラグインで実装するのは...そう、簡単ですよね？　以下のような Visitor を書けば対応できそうです。
+に変換するケースを考えてみましょう。これを Babel プラグインで実装するのは...そう、簡単ですよね？　以下のような Visitor を書けば対応できそうです。
 
 ```typescript
 const removeInjectIntlVisitor = {
@@ -375,28 +375,30 @@ const removeInjectIntlVisitor = {
 
 しかし、多くのコードベースにはある程度の秩序があり、従っている慣習があります。これらの知見を前提にして、自分たちのコードベースのみに対応できるプラグインを書きましょう。
 
-実際、今回の変換対象であるコードベースでは、`injectIntl` HOC が、別名でインポートされることはないですし、`injectIntl(...)` という呼び出しが、`export default` されるところ以外で現れることもありません。なので、ほぼ上記と同じコードで変換を実装していますし、それで何の問題もありませんでした。
+実際、今回の変換対象であるコードベースでは、`injectIntl` HOC が、別名でインポートされることはないですし、`injectIntl(...)` という呼び出しが、`export default` されるところ以外で現れることもありません。
+
+今回の取り組みでも、ほぼ上記と同じコードで変換を実装していますし、それで何の問題もありませんでした。
 
 #### Jest の Snapshot テストを活用しよう
 
-AST の変換では、あるパターンの変更が別のパターンに影響を与えることがあり、少し前まではうまくいっていた変換がいつのまにか動かなくなっていることがザラにあります。
+AST の変換では、あるパターンの変更が別のパターンに影響を与えることがあり、少し前まではうまくいっていた変換がいつのまにか動かなくなっていることが割とよくあります。
 
-自動テストを必ず書きましょう。
+有名な格言通り、**自動テストは必ず書きましょう。**
 
-しかし、テスト対象のコードを AST に変換して、期待するノードを逐一チェックする、そんなテストを書くのは嫌ですよね？　テスト自体のメンテナンス性も低そうです。ぜひ、[Jest の Snapshot テスト](https://jestjs.io/docs/en/snapshot-testing)を使いましょう。
+しかし、テスト対象のコードを AST に変換して、期待するノードを逐一チェックする、そんなテストを書くのは嫌ですよね？　テスト自体のメンテナンス性も低そうです。AST 変換のテストには、[Jest の Snapshot テスト](https://jestjs.io/docs/en/snapshot-testing)をおすすめします。導入は簡単ですし、一番費用対効果が高いです。
 
-今回のような用途で Babel プラグインを書くときは、以下のような開発フローが定番になります。
+今回のような用途で Babel プラグインを書くときは、以下の開発フローが定番になります。
 
 1. 変換対象のコードを Fixture として用意する
 2. AST Explorer の出力を参考にしながら、変換処理を実装する
-3. `npx babel` で変換結果を確認する
+3. `npx babel` で Fixture の変換結果を確認する
 4. `npx jest` で過去の Snapshot テストが通るか確認する
 5. うまく変換できるまで、2 から 4 を繰り返す
-6. 最後に `npx jest -u` で Snapshot を更新する
+6. 最後に `npx jest -u` で Snapshot を更新してコミット
 
 #### スコープの情報が更新されていないときは crawl() する
 
-Babel にはローカル変数の束縛をチェックしたり、ユニークな変数名を生成したりできる便利な機能として [Scope](https://github.com/jamiebuilds/babel-handbook/blob/master/translations/en/plugin-handbook.md#toc-scope) が用意されていますが、AST を直接プロパティを変更した場合などに情報が反映されない場合があります。
+Babel にはローカル変数の束縛をチェックしたり、ユニークな変数名を生成したりできる便利な機能として [Scope](https://github.com/jamiebuilds/babel-handbook/blob/master/translations/en/plugin-handbook.md#toc-scope) が用意されていますが、AST のプロパティを直接変更した場合などに情報が反映されないことがあります。
 
 そのようなときは `Scope.crawl()` メソッドで更新しましょう。
 
@@ -406,7 +408,9 @@ path.scope.crawl();
 
 ### injectIntl の変換
 
-では、コードを見ながら、いくつか重要な箇所を解説していきます。まず、これがメインの Visitor になります。
+では、コードを見ながら、いくつか重要な箇所を解説していきます。
+
+まず、メインの Visitor はこのような実装です。
 
 ```typescript
 const visitor = {
@@ -437,7 +441,7 @@ const visitor = {
 };
 ```
 
-見ての通り、特に難しいところはなく、
+見ての通り、特に難しいところはなく、Program ノードから始めて、
 
 - 変換処理は複数の Visitor に分割して実装
 - すべての Visitor で共有する state を作って、情報の受け渡しはそこで行う
@@ -451,7 +455,7 @@ const visitor = {
 
 再三書いているとおり、Hooks は関数コンポーネントでしか使えないので、変換対象は関数コンポーネントだけに絞る必要があります。しかし、関数コンポーネントかどうかを判別するのは割と面倒なので、ここでは「クラスコンポーネントでなければ関数コンポーネント」ということにしています。
 
-クラスコンポーネントかどうかは、これも単純に「React.Component を継承したクラスがあるかどうか」で判定しています。
+クラスコンポーネントかどうかは、これも単純に「`React.Component` を継承したクラスがあるかどうか」で判定しています。
 
 ```typescript
 // We must not convert class component.
@@ -498,21 +502,6 @@ const { formatMessage } = useIntl();
 まずは全体のコードを載せます。多少分量が多いのですが、基本的には愚直に変換をしているだけです。
 
 ```typescript
-// Transform:
-//
-// ```javascript
-// const {
-//   ...,
-//   intl: { ... }
-// } = props;
-// ```
-//
-// to:
-//
-// ```javascript
-// const {...} = props;
-// const {...} = useIntl();
-// ```
 const replaceWithUseIntlVisitor = {
   VariableDeclaration(
     path: NodePath<t.VariableDeclaration>,
@@ -606,7 +595,7 @@ if (
 }
 ```
 
-今回のコードベースは Flow で型付けされており、**AST を変換するときは Flow の型チェックも通るように実装しなくてはなりません。**
+今回のコードベースは Flow で型付けされており、**AST を変換するときは Flow の型チェックも通るように実装します。**
 
 最後のこの変換は、Babel の Scope を利用して、
 
@@ -614,7 +603,7 @@ if (
 function MyComponent(props: { intl: IntlShape }) {...}
 ```
 
-のように型付けされた JavaScript コードから `intl` を取り除いています。
+このように型付けされた JavaScript コードから `intl` を取り除いています。
 
 #### importInjectIntlVisitor
 
@@ -672,7 +661,7 @@ const importInjectIntlVisitor = {
 
 途中の Visitor はだいたい同じ処理ばかりなので、一気に最後の removeEmptyObjectPatternVarDecl を見てみましょう。
 
-[replaceWithUseIntlVisitor](#replaceWithUseIntlVisitor) で props を置き換えた結果、props が空になることがあります。
+replaceWithUseIntlVisitor で props を置き換えた結果、props が空になることがあります。
 
 ```javascript
 function MyComponent(props) {
@@ -682,7 +671,7 @@ function MyComponent(props) {
 }
 ```
 
-空の ObjectPattern および、未使用の変数も ESLint で禁止されているため、この Visitor を使って以下のようなコードに変換します。
+空の ObjectPattern および、未使用の変数も ESLint で禁止しているため、この Visitor を使って以下のようなコードに変換します。
 
 ```JavaScript
 function MyComponent(_props) {
@@ -691,7 +680,7 @@ function MyComponent(_props) {
 }
 ```
 
-実装は以下の通り。ここでも Scope が大活躍しています。
+実装は以下の通り。ここでも Scope が活躍しています。
 
 ```typescript
 // Remove a variable declaration which contains empty object pattern only,
@@ -719,15 +708,15 @@ const removeEmptyObjectPatternVarDecl = {
 
 ## まとめ
 
-最終的に完成したプラグインで、見事 147 個のファイルを変換できました。
+最終的に完成したプラグインで、見事 **147 個のファイルを変換できました**。
 
 ![](https://github.com/ishikawa/my-zenn-content/blob/main/articles/convert-legacy-code-with-home-brewed-babel-plugin/Merged.png?raw=true)
 
-エディタの検索結果では対象は 176 個だったので、変換できなかったパターンが 30 個ほどあったことになりますが、手作業のつらさを思えば十分満足のいく結果です。
+エディタの検索結果では対象は 176 個だったので、変換できなかったファイルが 30 個ほどあったことになりますが、手作業のつらさを思えば十分満足のいく結果です。
 
-実際のコードを見ていただいたことで、**汎用的なものを目指さなければ Babel プラグインによる変換は思ったより簡単**、ということが幸いです。少なくとも、すでに強固なインフラストラクチャーが整備されている Babel は、正規表現で書いたアドホックなスクリプトより何倍も書きやすく読みやすいのは間違いありません。
+実際のコードを見ていただいたことで、**汎用的なものを目指さなければ Babel プラグインによる変換は思ったより簡単**、ということが伝わったでしょうか？　少なくとも、すでに強固なインフラストラクチャーが整備されている Babel は、正規表現で書いたアドホックなスクリプトより何倍も書きやすく読みやすいのは間違いありません。
 
-また、VSCode による TypeScript のサポートも強力で、非常に快適な開発環境でした。ますます、TypeScript に移行したくなりました。
+また、VSCode による TypeScript のサポートも強力で、非常に快適な開発環境でした。ますます TypeScript に移行したくなりました 😀
 
 [^1]: [ABEJA Platform + LINE Botで機械学習アプリをつくる - Qiita](https://qiita.com/ishikawa@github/items/3b27d7836032f0e42f88)
 [^2]: [ABEJA Platform の認証についてまとめる - Qiita](https://qiita.com/ishikawa@github/items/150a0705d9581c1000c6)
