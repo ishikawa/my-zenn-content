@@ -165,7 +165,7 @@ Snapshots:   0 total
 Time:        4.855s
 ```
 
-検索してみたところ、他に同様の問題に当たっている人がいるようなので、[^1] [ドキュメントの修正 PR](https://github.com/expo/expo/pull/11580) を投げておいた。
+検索してみたところ、他にも同様の問題に当たっている人がいるようなので[^1]、 ドキュメントの[修正 PR](https://github.com/expo/expo/pull/11580) を投げておいた。
 
 ## Jest の設定ファイルも TypeScript で書く
 
