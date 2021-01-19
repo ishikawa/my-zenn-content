@@ -118,3 +118,4 @@ dist
 # my workspace
 workspace
 .DS_Store
+.work
