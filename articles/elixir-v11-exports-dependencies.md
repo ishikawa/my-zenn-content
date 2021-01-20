@@ -49,7 +49,7 @@ defmodule ElixirV11.ModuleB do
 end
 ```
 
-ModuleA は ModuleB の struct と fetch_name/1 関数に依存している。このふたつは公開インターフェースなので、`moduleA.ex` の `import ModuleB, only: [fetch_name: 1]` は、Elixir 1.10 では *Compile time dependencies* だったが、Elixir 1.11 では *Export dependencies* になっている。
+ModuleA は ModuleB の struct と fetch_name/1 関数に依存している。このふたつは公開インターフェースなので、`moduleA.ex` の `import ModuleB, only: [fetch_name: 1]` は、Elixir 1.10 では *Compile time dependencies* だったが、Elixir 1.11 では *Exports dependencies* になっている。
 
 そのため、`moduleB.ex` を変更したときに、Elixir 1.10 では `moduleA.ex` の再コンパイルが必要だが、Elixir 1.11 では不要になった。
 
