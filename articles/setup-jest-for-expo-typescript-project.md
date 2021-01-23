@@ -214,7 +214,6 @@ import { Config } from "@jest/types";
 // To overcome this, exclude these modules in the ignore pattern.
 const untranspiledModulePatterns = [
   "(jest-)?react-native",
-  "react-clone-referenced-element",
   "@react-native-community",
   "expo(nent)?",
   "@expo(nent)?/.*",
@@ -224,7 +223,7 @@ const untranspiledModulePatterns = [
   "unimodules",
   "sentry-expo",
   "native-base",
-  "@sentry/.*",
+  "react-native-svg",
 ];
 
 const config: Config.InitialOptions = {
@@ -239,6 +238,14 @@ export default config;
 ```
 
 長ったらしい正規表現を分解したことで、かなり見通しがよくなった。コメントが書けない `package.json` に比べると、コメントが書けるだけでも嬉しい😅
+
+::: message
+
+(2021.01.24 追記) 実は jest-expo の preset には `transformIgnorePatterns` が[含まれている](https://github.com/expo/expo/blob/9f1c0850d814e131cb565dd3d0fc9a91481e1e06/packages/jest-expo/jest-preset.js#L40)ので、デフォルトの設定のままでよければ、わざわざ指定する必要はない。ただ、このリストは使うライブラリによって追加が必要なので、個人的にはこの方式のまま使っている。
+
+なお、上記の例は現時点で最新のリストで更新してある。
+
+:::
 
 最後に一点。jest を jest-expo が依存しているバージョンではなく、改めてインストールしなおした場合、`node_modules` にはふたつのバージョンの jest が混在していることになる。
 
