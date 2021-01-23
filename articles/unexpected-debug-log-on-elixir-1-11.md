@@ -3,7 +3,7 @@ title: "Elixir 1.11 の mix --no-start オプションと Logger"
 emoji: "🍋"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [elixir]
-published: false
+published: true
 ---
 
 ## Elixir 1.11 の Logger
