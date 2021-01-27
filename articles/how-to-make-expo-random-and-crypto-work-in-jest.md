@@ -4,15 +4,16 @@ emoji: "🙏"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [expo, jest]
 published: false
+
 ---
 
-Expo プロジェクトを Jest で登録する方法については [Expo の TypeScript プロジェクトで自動テスト](https://zenn.dev/takanori_is/articles/setup-jest-for-expo-typescript-project) で紹介したが、[jest-expo](https://www.npmjs.com/package/jest-expo) を使うと Expo SDK の提供する API はダミーの値や `undefined` を返すようになってしまう。[^1]
+Expo プロジェクトを Jest でテストする方法については [Expo の TypeScript プロジェクトで自動テスト](https://zenn.dev/takanori_is/articles/setup-jest-for-expo-typescript-project)で紹介した。しかし、[jest-expo](https://www.npmjs.com/package/jest-expo) を使うと **Expo SDK の提供する API はダミーの値や `undefined` を返すようになってしまう。**[^1]
 
 まあ、Expo SDK の API はターゲット環境となる iOS/Android/Web のネイティブ API を呼び出しているわけで、Jest が実行される Node 環境でこれらが動かないのだから当然だ。
 
 ## それでも動いてほしいときはある
 
-今回、テストしたかったのは以下のような関数である。
+今回、テストしたかったのは以下のような関数。
 
 ```typescript
 import * as Random from 'expo-random';
@@ -85,9 +86,9 @@ $ npm run test ./test/utils/Random.test.ts
 
 ## やっぱり、ちゃんと動いてほしい
 
-はい。「これってテストになってるのかな？🤔」って不安になりますよね。
+テストが通って喜んだのも束の間「これってテストになってるのかな？🤔」と不安に襲われる。
 
-というか Node 環境には乱数もハッシュ関数も [crypto モジュール](https://nodejs.org/api/crypto.html)に用意されているので、それらで実装すればよさそうだ。
+というか Node 環境には乱数もハッシュ関数も [crypto モジュール](https://nodejs.org/api/crypto.html)で用意されているので、それらで実装すればよさそうだ。
 
 ```typescript
 import crypto from 'crypto';
@@ -104,10 +105,10 @@ jest.mock('expo-random/build/ExpoRandom', () => ({
 しかし、これは以下のエラーが出て動かない。
 
 ```bash
-    ReferenceError: /Users/takanori.ishikawa/Developer/Workspace/bizflex-client/test/utils/Random.test.ts: The module factory of `jest.mock()` is not allowed to reference any out-of-scope variables.
-    Invalid variable access: crypto
-    Allowed objects: Array, ArrayBuffer, Atomics, BigInt, BigInt64Array, BigUint64Array, Boolean, Buffer, DataView, Date, Error, EvalError, Float32Array, Float64Array, Function, GLOBAL, Generator, GeneratorFunction, ...
-    Note: This is a precaution to guard against uninitialized mock variables. If it is ensured that the mock is required lazily, variable names prefixed with `mock` (case insensitive) are permitted.
+ReferenceError: /path/to/test/utils/Random.test.ts: The module factory of `jest.mock()` is not allowed to reference any out-of-scope variables.
+Invalid variable access: crypto
+Allowed objects: Array, ArrayBuffer, Atomics, BigInt, BigInt64Array, BigUint64Array, Boolean, Buffer, DataView, Date, Error, EvalError, Float32Array, Float64Array, Function, GLOBAL, Generator, GeneratorFunction, ...
+Note: This is a precaution to guard against uninitialized mock variables. If it is ensured that the mock is required lazily, variable names prefixed with `mock` (case insensitive) are permitted.
 ```
 
 エラーで書かれている通り、`jest.mock()` では、外側のスコープにあるオブジェクトは一部以外はアクセスできない。このように変えてやる必要がある。
@@ -166,7 +167,7 @@ const config: Config.InitialOptions = {
 };
 ```
 
-
+これで、すべてのテストで Expo の Random モジュールと Crypto モジュールが期待通りに動くようになる。
 
 [^1]: [src/preset/expoModules.js](https://github.com/expo/expo/blob/ios/2.16.1/packages/jest-expo/src/preset/expoModules.js) で定義された API 一覧を、[こんな感じ](https://github.com/expo/expo/blob/ios/2.16.1/packages/jest-expo/src/preset/setup.js#L41)でモックしているようだ。
 [^2]: ちなみに、OpenID Connect の nonce を生成するために使う。
