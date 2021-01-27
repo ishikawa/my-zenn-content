@@ -3,7 +3,7 @@ title: "Jest-Expo でも Random と Crypto が動いてほしい"
 emoji: "🙏"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [expo, jest]
-published: false
+published: true
 
 ---
 
