@@ -6,7 +6,7 @@ topics: [expo, reactnative, typescript, jest]
 published: true
 ---
 
-最近は [Expo](https://expo.io/) で [React Native](https://reactnative.dev/) もやってます🙂
+最近は [Expo](https://expo.io/) で [React Native](https://reactnative.dev/) もやってます 🙂
 
 今回は、Expo のプロジェクトを Jest でテストしたい。基本的に [Testing with Jest - Expo Documentation](https://docs.expo.io/guides/testing-with-jest/) にしたがって進めればいいのだが、TypeScript の場合は多少設定を変える必要がある。この記事では以下のポイントを紹介する。
 
@@ -16,7 +16,7 @@ published: true
 なお、手元の環境は次の通り。
 
 ```bash
-$ expo --version                                              
+$ expo --version
 4.0.17
 $ npm list expo
 my-expo-app
@@ -48,7 +48,7 @@ Jest の設定は、とりあえずドキュメント通り `package.json` に�
 }
 ```
 
-`transformIgnorePatterns` にやたらと長い正規表現が書かれている🤔
+`transformIgnorePatterns` にやたらと長い正規表現が書かれている 🤔
 
 Jest はデフォルトで `node_modules/` 以下をトランスパイル対象から外すのだが、React Native のライブラリはトランスパイルされずに配布されているものがある。[`transformIgnorePatterns`](https://jestjs.io/docs/en/configuration#transformignorepatterns-arraystring) を上記のように設定することで、それらをトランスパイル対象にしている。
 
@@ -186,7 +186,7 @@ Time:        4.855s
 }
 ```
 
-特に `transformIgnorePatterns` は複雑だし、`package.json` に記述するよりは外に出したいところだ。そして、できればTypeScript で書きたい。
+特に `transformIgnorePatterns` は複雑だし、`package.json` に記述するよりは外に出したいところだ。そして、できれば TypeScript で書きたい。
 
 Jest [26.6.0](https://github.com/facebook/jest/blob/master/CHANGELOG.md#2660) からは **TypeScript による設定ファイルもサポートされている**。[ts-node](https://www.npmjs.com/package/ts-node) が必要なのでインストールする。
 
@@ -197,11 +197,11 @@ $ npm i ts-node --save-dev
 また、jest-expo が依存している jest が古い場合は、こちらもインストールする。
 
 ```bash
-$ npm list jest           
+$ npm list jest
 my-expo-app
 └─┬ jest-expo@40.0.1
-  └── jest@25.5.4 
-$ npm i jest --save-dev 
+  └── jest@25.5.4
+$ npm i jest --save-dev
 ```
 
 では、新しく `jest.config.ts` を作成し、設定を移していこう。
@@ -237,7 +237,7 @@ const config: Config.InitialOptions = {
 export default config;
 ```
 
-長ったらしい正規表現を分解したことで、かなり見通しがよくなった。コメントが書けない `package.json` に比べると、コメントが書けるだけでも嬉しい😅
+長ったらしい正規表現を分解したことで、かなり見通しがよくなった。コメントが書けない `package.json` に比べると、コメントが書けるだけでも嬉しい 😅
 
 ::: message
 
@@ -252,9 +252,9 @@ export default config;
 `npm list` コマンドで確認してみよう。
 
 ```bash
-$ npm list jest        
+$ npm list jest
 my-expo-app
-├── jest@26.6.3 
+├── jest@26.6.3
 └─┬ jest-expo@40.0.1
   └── jest@25.5.4
 ```
@@ -289,9 +289,9 @@ lrwxr-xr-x  1 takanori_is  staff  24  1 16 16:34 ./node_modules/.bin/jest -> ../
 `npm test` で実行できるようになった。
 
 ```bash
-$ npm test                  
+$ npm test
 
-> @ test /Users/ishikawasonkyou/Developer/Workspace/my-expo-app
+> @ test /Users/takanori_is/Developer/Workspace/my-expo-app
 > ./node_modules/jest/bin/jest.js
 
  PASS  ./App.test.tsx
@@ -305,7 +305,4 @@ Time:        0.767 s, estimated 1 s
 Ran all test suites.
 ```
 
-
-
 [^1]: [reactjs - Jest-Expo crashes on example (React.createElement: type is invalid -- expected a string) - Stack Overflow](https://stackoverflow.com/questions/65549722/jest-expo-crashes-on-example-react-createelement-type-is-invalid-expected-a)
-

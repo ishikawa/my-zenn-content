@@ -6,7 +6,7 @@ topics: [expo, reactnative]
 published: true
 ---
 
-*これまでのあらすじ…*
+_これまでのあらすじ…_
 
 [前回の記事](https://zenn.dev/takanori_is/articles/setup-jest-for-expo-typescript-project)では、初期状態の Expo プロジェクトに Jest によるテストを追加した。TypeScript の場合は公式ガイドの手順に加えて、若干の修正が必要だった。そして、この時点でのファイル構成は以下のようになっている。
 
@@ -65,7 +65,7 @@ $ tree -L 2 .
 └── tsconfig.json
 ```
 
-当然、ファイルパスを変えたので、*Relative import* が動かなくなってる。
+当然、ファイルパスを変えたので、_Relative import_ が動かなくなってる。
 
 ```typescript
 $ npx tsc
@@ -75,7 +75,7 @@ test/App.test.tsx:4:17 - error TS2307: Cannot find module './App' or its corresp
                   ~~~~~~~
 ```
 
-`import App from "../src/App";` として修正することもできるが、どうせなら tsconfig.json の `baseUrl` を設定して、*Non-relative import* でインポートできるようにしておこう。[^1]
+`import App from "../src/App";` として修正することもできるが、どうせなら tsconfig.json の `baseUrl` を設定して、_Non-relative import_ でインポートできるようにしておこう。[^1]
 
 ```json:tsconfig.json
 {
@@ -118,7 +118,7 @@ FAIL  test/App.test.tsx
     See https://jestjs.io/docs/en/configuration#modulefileextensions-arraystring
 
       2 | import renderer from "react-test-renderer";
-      3 | 
+      3 |
     > 4 | import App from "App";
         | ^
 ```
@@ -163,7 +163,7 @@ PASS  test/App.test.tsx
 
 ```bash
 Failed to compile.
-ENOENT: no such file or directory, open '/Users/ishikawasonkyou/Developer/Workspace/my-zenn-content/.work/my-expo-app/assets/favicon.png'
+ENOENT: no such file or directory, open '/Users/takanori_is/Developer/Workspace/my-zenn-content/.work/my-expo-app/assets/favicon.png'
 Unable to resolve asset "./assets/icon.png" from "icon" in your app.json or app.config.js
 (node:73125) [DEP0066] DeprecationWarning: OutgoingMessage.prototype._headers is deprecated
 Error: Problem validating asset fields in app.json. See https://docs.expo.io/
