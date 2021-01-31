@@ -1,14 +1,26 @@
 ---
-title: "Expo と React Navigation で Twitter のスライドメニューを作る"
+title: "Expo と React Navigation で Twitter のようなスライドメニューを作る"
 emoji: "⛺️"
 type: "tech"
 topics: [reactnative, expo]
 published: false
 ---
 
-[Expo](https://expo.io/) でナビゲーションを実装するときは React Navigation を使うことが[推奨されている](https://docs.expo.io/guides/routing-and-navigation/)。今回は、React Navigation を使って、スライドで開閉できるサイドメニューを実装したい。これはたとえば、iOS の Twitter アプリで見られるようなメニューである。
+Twitter の iOS アプリは左サイドメニューがスライドによって開閉できるようになっている。
 
-（写真）
+![TwitterSlideMenu](/Users/ishikawasonkyou/Developer/Workspace/my-zenn-content/articles/build-slide-menu-with-expo-and-react-navigation/TwitterSlideMenu.png)
+
+[Expo](https://expo.io/) でナビゲーションを実装するときは [React Navigation](https://reactnavigation.org/) を使うことが[推奨されている](https://docs.expo.io/guides/routing-and-navigation/)。今回は、React Navigation を使って、スライドで開閉できるサイドメニューを作りたい。これはたとえば、iOS の Twitter アプリで見られるようなメニューである。
+
+（スクリーンショット）
+
+[公式のガイド](https://reactnavigation.org/docs/drawer-based-navigation)は非常に基本的な内容に留まっているが、ここに書かれている以外にも多くの [API が用意されており](https://reactnavigation.org/docs/drawer-navigator)、これらを組み合わせれば、以下のようなカスタマイズが可能だ。
+
+- メニュを開くとき一緒にメインのビューもスライドさせる
+- メニューの幅を調整
+- メニューの内容を独自のビューに置き換える
+
+これらによって、iOS の Twitter アプリと同じような動作をするメニューを作ることができる。
 
 ## 新規プロジェクトの準備
 
@@ -45,7 +57,7 @@ $ expo install @react-navigation/native
 $ expo install react-native-gesture-handler react-native-reanimated react-native-screens react-native-safe-area-context @react-native-community/masked-view
 ```
 
-また、今回作ろうとしているサイドメニュー（ドロワー）は @react-navigation/drawer で提供されているので、最後にこれを追加しよう。
+また、サイドメニュー（ドロワー）は @react-navigation/drawer で提供されているので、最後にこれを追加しよう。
 
 ```bash
 $ expo install @react-navigation/drawer
@@ -53,7 +65,7 @@ $ expo install @react-navigation/drawer
 
 ## 基本的なメニューを作る
 
-次に、公式ドキュメントの [Drawer navigation | React Navigation](https://reactnavigation.org/docs/drawer-based-navigation) に従って、基本的なサイドメニューを実装する。ドキュメントのサンプルコードに TypeScript の型アノテーションを追加したコードが以下になる。
+次に、公式ガイドに従って、基本的なサイドメニューを実装する。ドキュメントのサンプルコードに TypeScript の型アノテーションを追加したコードが以下になる。[^1]
 
 ```typescript:App.tsx
 import React from "react";
@@ -127,3 +139,16 @@ const styles = StyleSheet.create({
 });
 ```
 
+とりあえず動くメニューを実装できた。起動してみよう。
+
+（tag v1 のスクリーンショットか動画）
+
+しかし、このままでは思い描いた動作とは程遠い。
+
+1. **メニューがメインのビューに重なっている**（一緒に移動するようにしたい）
+2. **メニューの幅が狭すぎる**（もっと広くしたい）
+3. **メニューの内容が固定**（登録済みの Routes が表示されるだけ）
+
+順番に解決していこう。
+
+[^1]: React Navigation の TypeScript による型づけについては [Type checking with TypeScript | React Navigation](https://reactnavigation.org/docs/typescript) を参考
