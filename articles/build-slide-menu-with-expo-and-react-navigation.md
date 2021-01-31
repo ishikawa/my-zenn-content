@@ -8,7 +8,7 @@ published: false
 
 Twitter の iOS アプリは左サイドメニューがスライドによって開閉できるようになっている。
 
-![TwitterSlideMenu](/Users/ishikawasonkyou/Developer/Workspace/my-zenn-content/articles/build-slide-menu-with-expo-and-react-navigation/TwitterSlideMenu.png)
+![TwitterSlideMenu](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/TwitterSlideMenu.png)
 
 [Expo](https://expo.io/) でナビゲーションを実装するときは [React Navigation](https://reactnavigation.org/) を使うことが[推奨されている](https://docs.expo.io/guides/routing-and-navigation/)。今回は、React Navigation を使って、スライドで開閉できるサイドメニューを作りたい。これはたとえば、iOS の Twitter アプリで見られるようなメニューである。
 
