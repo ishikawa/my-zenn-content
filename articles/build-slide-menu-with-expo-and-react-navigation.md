@@ -10,7 +10,7 @@ Twitter の iOS アプリは左サイドメニューがスライドによって�
 
 ![TwitterSlideMenu](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/TwitterSlideMenu.png)
 
-普段使い慣れていることもあり、これを　[Expo](https://expo.io/) と [React Native](https://reactnative.dev/) で実装できるか試してみたい。
+普段使い慣れていることもあり、これを [Expo](https://expo.io/) と [React Native](https://reactnative.dev/) で実装できるか試してみたい。
 
 ## React Navigation
 
@@ -345,7 +345,5 @@ const styles = StyleSheet.create({
 `expo start` してシミュレーターで動作確認してみよう。たしかに、アイコン画像とメニュー項目を持つ独自のビューが配置されている。
 
 ![CustomDrawer](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/CustomDrawer2.gif)
-
-
 
 [^1]: React Navigation の TypeScript による型づけについては [Type checking with TypeScript | React Navigation](https://reactnavigation.org/docs/typescript) を参考
