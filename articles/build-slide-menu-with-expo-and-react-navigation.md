@@ -16,11 +16,17 @@ Twitter の iOS アプリは左サイドメニューがスライドによって�
 
 Expo でナビゲーションやルーティングを実装するときは [React Navigation](https://reactnavigation.org/) を使うことが[推奨されている](https://docs.expo.io/guides/routing-and-navigation/)。
 
+::: message
+
+以降では、用語を公式ドキュメントと合わせるために、サイドメニューを「**ドロワー**」、メインの画面を「**スクリーン**」と書きます。
+
+:::
+
 ただ、[公式のガイド](https://reactnavigation.org/docs/drawer-based-navigation)は非常に基本的な内容に留まっており、これだけだと期待しているようなメニューの実装ができない。実は、ここに書かれている以外にも多くの [API が用意されており](https://reactnavigation.org/docs/drawer-navigator)、これらを組み合わせれば、以下のようなカスタマイズが可能だ。
 
-- メニュを開くとき一緒にメインのビューもスライドさせる
-- メニューの幅を調整
-- メニューの内容を独自のビューに置き換える
+- ドロワーを開くとき一緒にスクリーンもスライドさせる
+- ドロワーの幅を調整
+- ドロワーの内容を独自のビューに置き換える
 
 最終的には次のようなアプリケーションが作れるようになる予定である。
 
@@ -61,7 +67,7 @@ $ expo install @react-navigation/native
 $ expo install react-native-gesture-handler react-native-reanimated react-native-screens react-native-safe-area-context @react-native-community/masked-view
 ```
 
-また、サイドメニュー（ドロワー）は @react-navigation/drawer で提供されているので、最後にこれを追加しよう。
+また、ドロワーは `@react-navigation/drawer` で提供されているので、最後にこれを追加しよう。
 
 ```bash
 $ expo install @react-navigation/drawer
@@ -69,7 +75,7 @@ $ expo install @react-navigation/drawer
 
 ## 基本的なメニューを作る
 
-次に、公式ガイドに従って、基本的なサイドメニューを実装する。ドキュメントのサンプルコードに TypeScript の型アノテーションを追加したコードが以下になる。[^1]
+次に、公式ガイドに従って、基本的なドロワーを実装する。ドキュメントのサンプルコードに TypeScript の型アノテーションを追加したコードが以下になる。[^1]
 
 ```typescript:App.tsx
 import React from "react";
@@ -143,16 +149,35 @@ const styles = StyleSheet.create({
 });
 ```
 
-とりあえず動くメニューを実装できた。起動してみよう。
+とりあえず動くドロワーを実装できた。起動してみよう。
 
 ![InitialVersion](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/InitialVersion.gif)
 
 しかし、このままでは思い描いた動作とは程遠い。
 
-1. **メニューがメインのビューに重なっている**（一緒に移動するようにしたい）
-2. **メニューの幅が狭すぎる**（もっと広くしたい）
-3. **メニューの内容が固定**（登録済みの Routes が表示されるだけ）
+1. **ドロワーがスクリーンに重なっている**（一緒に移動するようにしたい）
+2. **ドロワーの幅が狭すぎる**（もっと広くしたい）
+3. **ドロワーの内容が固定**（登録済みの画面一覧が表示されるだけ）
 
 順番に解決していこう。
+
+## ドロワーが開閉するときにスクリーンも動かすようにする
+
+ドロワーの動きは [`drawerType`](https://reactnavigation.org/docs/drawer-navigator#drawertype) プロパティで変更できる。期待する動きにするためには、`drawerType` を `"slide"` に変更する。
+
+```typescript
+<NavigationContainer>
+  <Drawer.Navigator drawerType="slide">
+    ...
+  </Drawer.Navigator>
+```
+
+早速動かしてみよう。
+
+![SlideDrawer](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/SlideDrawer.gif)
+
+期待通りに動いているようだ。次はドロワーの幅を広くしたい。
+
+
 
 [^1]: React Navigation の TypeScript による型づけについては [Type checking with TypeScript | React Navigation](https://reactnavigation.org/docs/typescript) を参考
