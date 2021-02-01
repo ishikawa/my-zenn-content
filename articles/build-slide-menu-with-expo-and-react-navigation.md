@@ -196,8 +196,52 @@ const styles = StyleSheet.create({
 });
 ```
 
-これで幅を広げることもできた。次はいよいよ、ドロワーの中身を独自のビューに置き換えよう。
+これで幅を広げることもできた。
 
 ![DrawerWidth](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/DrawerWidth.png)
+
+次はいよいよ、ドロワーの中身を独自のビューに置き換えよう。
+
+## ドロワーの中身をカスタマイズ
+
+ドロワーに表示される内容は [`drawerContent`](https://reactnavigation.org/docs/drawer-navigator/#drawercontent) と [`drawerContentOptions`](https://reactnavigation.org/docs/drawer-navigator/#drawercontentoptions) でカスタマイズできる。
+
+`drawerContent` でドロワーの中身として表示されるビューを上書きできるが、デフォルトでは以下のようになっている。
+
+```typescript
+import {
+  DrawerContentScrollView,
+  DrawerItemList,
+} from '@react-navigation/drawer';
+
+function CustomDrawerContent(props) {
+  return (
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
+  );
+}
+```
+
+デフォルトの表示は `drawerContentOptions` でカスタマイズできる。たとえば、以下のように書き換えてみよう。
+
+```typescript
+<NavigationContainer>
+  <Drawer.Navigator
+    drawerType="slide"
+    drawerStyle={styles.drawer}
+    drawerContentOptions={{
+      activeTintColor: "#e91e63",
+      itemStyle: { marginVertical: 30 },
+    }}
+  >
+  ...
+```
+
+ドロワーに表示されるメニュー項目の間隔と色が変わったのが分かると思う。他のオプションについては [API リファレンス](https://reactnavigation.org/docs/drawer-navigator/#drawercontentoptions)を参考にしてほしい。
+
+![DrawerOptions](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/DrawerOptions.png)
+
+もちろん、 `drawerContentOptions` では、そもそもやりたかった「ドロワーの中身を独自のビューで置き換え」は実現できない。それをやるには `drawerContent` を使って、中身を丸ごと置き換えてやる必要がある。
 
 [^1]: React Navigation の TypeScript による型づけについては [Type checking with TypeScript | React Navigation](https://reactnavigation.org/docs/typescript) を参考
