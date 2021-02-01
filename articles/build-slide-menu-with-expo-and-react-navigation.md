@@ -178,6 +178,26 @@ const styles = StyleSheet.create({
 
 期待通りに動いているようだ。次はドロワーの幅を広くしたい。
 
+## ドロワーの幅を調整する
 
+今のままだとドロワーの幅が狭すぎるので、もう少し広くしたい。これは [`drawerStyle`](https://reactnavigation.org/docs/drawer-navigator/#drawerstyle) で自由にスタイルを指定できるので、ここで `width` を指定してやればいい。
+
+```typescript
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Drawer.Navigator drawerType="slide" drawerStyle={styles.drawer}>
+...
+const styles = StyleSheet.create({
+  ...
+  drawer: {
+    width: "80%",
+  },
+});
+```
+
+これで幅を広げることもできた。次はいよいよ、ドロワーの中身を独自のビューに置き換えよう。
+
+![DrawerWidth](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/DrawerWidth.png)
 
 [^1]: React Navigation の TypeScript による型づけについては [Type checking with TypeScript | React Navigation](https://reactnavigation.org/docs/typescript) を参考
