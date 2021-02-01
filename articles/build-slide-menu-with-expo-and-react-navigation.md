@@ -10,17 +10,21 @@ Twitter の iOS アプリは左サイドメニューがスライドによって�
 
 ![TwitterSlideMenu](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/TwitterSlideMenu.png)
 
-[Expo](https://expo.io/) でナビゲーションを実装するときは [React Navigation](https://reactnavigation.org/) を使うことが[推奨されている](https://docs.expo.io/guides/routing-and-navigation/)。今回は、React Navigation を使って、スライドで開閉できるサイドメニューを作りたい。これはたとえば、iOS の Twitter アプリで見られるようなメニューである。
+普段使い慣れていることもあり、これを　[Expo](https://expo.io/) と [React Native](https://reactnative.dev/) で実装できるか試してみたい。
 
-（スクリーンショット）
+## React Navigation
 
-[公式のガイド](https://reactnavigation.org/docs/drawer-based-navigation)は非常に基本的な内容に留まっているが、ここに書かれている以外にも多くの [API が用意されており](https://reactnavigation.org/docs/drawer-navigator)、これらを組み合わせれば、以下のようなカスタマイズが可能だ。
+Expo でナビゲーションやルーティングを実装するときは [React Navigation](https://reactnavigation.org/) を使うことが[推奨されている](https://docs.expo.io/guides/routing-and-navigation/)。
+
+ただ、[公式のガイド](https://reactnavigation.org/docs/drawer-based-navigation)は非常に基本的な内容に留まっており、これだけだと期待しているようなメニューの実装ができない。実は、ここに書かれている以外にも多くの [API が用意されており](https://reactnavigation.org/docs/drawer-navigator)、これらを組み合わせれば、以下のようなカスタマイズが可能だ。
 
 - メニュを開くとき一緒にメインのビューもスライドさせる
 - メニューの幅を調整
 - メニューの内容を独自のビューに置き換える
 
-これらによって、iOS の Twitter アプリと同じような動作をするメニューを作ることができる。
+最終的には次のようなアプリケーションが作れるようになる予定である。
+
+*（最終バージョンのスクリーンショット）*
 
 ## 新規プロジェクトの準備
 
@@ -141,7 +145,7 @@ const styles = StyleSheet.create({
 
 とりあえず動くメニューを実装できた。起動してみよう。
 
-（tag v1 のスクリーンショットか動画）
+![InitialVersion](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/InitialVersion.gif)
 
 しかし、このままでは思い描いた動作とは程遠い。
 
