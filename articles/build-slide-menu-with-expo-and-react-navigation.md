@@ -3,7 +3,7 @@ title: "Expo と React Navigation で Twitter のようなスライドメニュ�
 emoji: "⛺️"
 type: "tech"
 topics: [reactnative, expo]
-published: false
+published: true
 ---
 
 Twitter の iOS アプリは左サイドメニューがスライドによって開閉できるようになっている。
@@ -30,7 +30,7 @@ Expo でナビゲーションやルーティングを実装するときは [Reac
 
 最終的には次のようなアプリケーションが作れるようになる予定である。
 
-![CustomDrawer](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/CustomDrawer.gif)
+![CustomDrawer](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/CustomDrawer2.gif)
 
 ## 新規プロジェクトの準備
 
@@ -344,11 +344,7 @@ const styles = StyleSheet.create({
 
 `expo start` してシミュレーターで動作確認してみよう。たしかに、アイコン画像とメニュー項目を持つ独自のビューが配置されている。
 
-![CustomDrawer](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/CustomDrawer.gif)
-
-
-
-
+![CustomDrawer](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/CustomDrawer2.gif)
 
 
 
