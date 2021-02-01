@@ -30,7 +30,7 @@ Expo でナビゲーションやルーティングを実装するときは [Reac
 
 最終的には次のようなアプリケーションが作れるようになる予定である。
 
-*（最終バージョンのスクリーンショット）*
+![CustomDrawer](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/CustomDrawer.gif)
 
 ## 新規プロジェクトの準備
 
@@ -243,5 +243,113 @@ function CustomDrawerContent(props) {
 ![DrawerOptions](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/DrawerOptions.png)
 
 もちろん、 `drawerContentOptions` では、そもそもやりたかった「ドロワーの中身を独自のビューで置き換え」は実現できない。それをやるには `drawerContent` を使って、中身を丸ごと置き換えてやる必要がある。
+
+`drawerContent` にはドロワーの中身となる React コンポーネントを返す関数を指定する。以下のような感じだ。
+
+```typescript
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Drawer.Navigator
+        drawerType="slide"
+        drawerStyle={styles.drawer}
+        drawerContent={() => <View></View>}
+      >
+...
+```
+
+また、この関数には navigation オブジェクトを含む props が渡される。
+
+```typescript
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Drawer.Navigator
+        drawerType="slide"
+        drawerStyle={styles.drawer}
+        drawerContent={props => <DrawerMenu {...props} />}
+      >
+...
+```
+
+ここでは、サンプルとして、アイコン画像とメニュー項目を配置して、それっぽいビューを作ってみる。ここで気をつけたいのは、ドロワーに表示するビューに渡される props の型が `DrawerContentComponentProps` になることくらいだろうか。
+
+```typescript
+import React from "react";
+import {
+  StyleSheet,
+  Button,
+  Text,
+  Image,
+  View,
+  TouchableOpacity,
+} from "react-native";
+import {
+  createDrawerNavigator,
+  DrawerNavigationProp,
+  DrawerContentComponentProps,
+} from "@react-navigation/drawer";
+import { NavigationContainer } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
+
+// @ts-ignore
+import picture from "./assets/picture.png";
+...
+function DrawerMenu({ navigation }: DrawerContentComponentProps) {
+  return (
+    <View style={styles.menuContainer}>
+      <Image source={picture} resizeMode="contain" style={styles.picture} />
+      <View>
+        <Text style={styles.name}>takanori_is</Text>
+        <Text style={styles.nickname}>@takanori_is</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.menuItem}
+        onPress={() => {
+          navigation.navigate("Home");
+        }}
+      >
+        <Ionicons name="home-outline" size={24} />
+        <Text style={styles.menuItemLabel}>ホーム</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.menuItem}
+        onPress={() => {
+          navigation.navigate("Notifications");
+        }}
+      >
+        <Ionicons name="notifications-outline" size={24} />
+        <Text style={styles.menuItemLabel}>通知</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+...
+const styles = StyleSheet.create({
+  ...
+  menuContainer: { paddingVertical: 70, paddingHorizontal: 20 },
+  picture: {
+    width: 64,
+    height: 64,
+    borderRadius: 64 / 2,
+    marginBottom: 7,
+  },
+  name: { fontSize: 18, fontWeight: "bold" },
+  nickname: { fontSize: 15, color: "gray" },
+  menuItem: { flexDirection: "row", marginTop: 24 },
+  menuItemLabel: { marginLeft: 15, fontSize: 20, fontWeight: "300" },
+});
+```
+
+`expo start` してシミュレーターで動作確認してみよう。たしかに、アイコン画像とメニュー項目を持つ独自のビューが配置されている。
+
+![CustomDrawer](https://raw.githubusercontent.com/ishikawa/my-zenn-content/main/articles/build-slide-menu-with-expo-and-react-navigation/CustomDrawer.gif)
+
+
+
+
+
+
 
 [^1]: React Navigation の TypeScript による型づけについては [Type checking with TypeScript | React Navigation](https://reactnavigation.org/docs/typescript) を参考
