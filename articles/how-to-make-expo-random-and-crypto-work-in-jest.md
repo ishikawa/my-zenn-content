@@ -7,6 +7,12 @@ published: true
 
 ---
 
+::: message
+
+（2021/02/04 追記）この記事で紹介したモックをそれぞれ [node-expo-crypto](https://www.npmjs.com/package/node-expo-crypto) と [node-expo-random](https://www.npmjs.com/package/node-expo-random) として公開しました。
+
+:::
+
 Expo プロジェクトを Jest でテストする方法については [Expo の TypeScript プロジェクトで自動テスト](https://zenn.dev/takanori_is/articles/setup-jest-for-expo-typescript-project)で紹介した。しかし、[jest-expo](https://www.npmjs.com/package/jest-expo) を使うと **Expo SDK の提供する API はダミーの値や `undefined` を返すようになってしまう。**[^1]
 
 まあ、Expo SDK の API はターゲット環境となる iOS/Android/Web のネイティブ API を呼び出しているわけで、Jest が実行される Node 環境でこれらが動かないのだから当然だ。
