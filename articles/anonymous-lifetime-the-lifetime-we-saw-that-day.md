@@ -10,11 +10,15 @@ published: false
 
 多くの初心者と同じようにライフタイムで苦しめられています。最近も**匿名ライフタイム**のことがよく分からず、いくつかプログラムを書いたりドキュメントや Web で情報を漁って調べていました。調べはじめた当初よりは理解も進んで、気をつけるポイントも分かってきたので記事にまとめておきます。
 
+この記事では同じような Rust 初心者向けに以下のことを説明していきます。
+
+- そもそも匿名ライフタイムとは何なのか？
+- 何のためにあるのか？
+- 日々のプログラミングでどのように役立つのか？
+
 ## 匿名ライフタイムとは何か？
 
-まずは「匿名ライフタイムとは何か？」について説明します。
-
-例として、次の構造体を見てください。
+まずは**匿名ライフタイム**とは何でしょうか？　例として、次の構造体を見てください。
 
 ```rust
 struct ImportantExcerpt<'a> {
@@ -64,7 +68,33 @@ fn first_sentence(novel: &str) -> ImportantExcerpt<'_>
 
 返り値の *ImportantExcerpt* 構造体には `'_` というライフタイムが指定されており、識別子による名前がついていません。このように名前がついていないライフタイムを**匿名ライフタイム**といいます。
 
+別の例として、標準ライブラリの std::io::error の [Error](https://doc.rust-lang.org/1.52.0/std/io/struct.Error.html) 構造体が [Display](https://doc.rust-lang.org/std/fmt/trait.Display.html) トレイトを実装するコードを見てみましょう。[^2]
 
+```rust
+impl fmt::Display for Error {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.repr {
+            Repr::Os(code) => {
+                let detail = sys::os::error_string(code);
+                write!(fmt, "{} (os error {})", detail, code)
+            }
+            Repr::Custom(ref c) => c.error.fmt(fmt),
+            Repr::Simple(kind) => write!(fmt, "{}", kind.as_str()),
+        }
+    }
+}
+```
+
+std::fmt::[Formatter](https://doc.rust-lang.org/std/fmt/struct.Formatter.html) に指定するライフタイムに匿名ライフタイムが使われていることが分かります。これは関数の返り値ではなく引数で使われている点を除けば、最初の例と同じ使われ方ですね。
+
+では、別の使われ方も見てみましょう。同じく標準ライブラリから。標準入力への排他アクセスを提供する std::io::[StdinLock](https://doc.rust-lang.org/1.52.0/std/io/struct.StdinLock.html) が std::io::[Read](https://doc.rust-lang.org/1.52.0/std/io/trait.Read.html) トレイトを実装しているコードです。[^3]
+
+```rust
+impl Read for StdinLock<'_> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.inner.read(buf)
+    }
+```
 
 
 
@@ -113,4 +143,6 @@ fn first_sentence(novel: &str) -> ImportantExcerpt<'_>
 ---
 
 [^1]: [Validating References with Lifetimes - The Rust Programming Language](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html) より抜粋。なお、"Call me Ishmael. Some years ago..." はハーマン・メルヴィル「白鯨」の書き出しの一節。
+[^2]: https://github.com/rust-lang/rust/blob/1.52.1/library/std/src/io/error.rs/#L534-L547
+[^3]: https://github.com/rust-lang/rust/blob/1.52.1/library/std/src/io/stdio.rs/#L416-L419
 
