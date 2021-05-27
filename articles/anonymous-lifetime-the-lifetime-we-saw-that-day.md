@@ -18,7 +18,7 @@ published: false
 
 ## 匿名ライフタイムとは何か？
 
-まずは**匿名ライフタイム**とは何でしょうか？　例として、次の構造体を見てください。
+まずは**匿名ライフタイム**とは何でしょうか？　例として次の構造体を見てください。
 
 ```rust
 struct ImportantExcerpt<'a> {
@@ -96,6 +96,42 @@ impl Read for StdinLock<'_> {
     }
 ```
 
+今度は関数シグネチャではなく impl ブロックの構造体に与えるライフタイムに匿名ライフタイムが使用されています。
+
+最後に、トレイトオブジェクトとライフタイム境界の組み合わせです。整数のベクタを持つ構造体に、各要素を 2 倍にするイテレータを返すメソッド `double_items` を実装します。[^4]
+
+```rust
+struct Foo {
+    items: Vec<i32>,
+}
+
+impl Foo {
+    fn doubled_items(&self) -> Box<dyn Iterator<Item = i32> + '_> {
+        Box::new(self.items.iter().map(|x| x * 2))
+    }
+}
+```
+
+この例では、Box を使わなくても [impl Trait](https://doc.rust-lang.org/rust-by-example/trait/impl_trait.html) で書き直すことができます。
+
+```rust
+fn doubled_items(&self) -> impl Iterator<Item = i32> + '_ {
+    Box::new(self.items.iter().map(|x| x * 2))
+}
+```
+
+どちらの例でもライフタイム境界に匿名ライフタイムが使われていることがわかります。
+
+## Edition 2018
+
+匿名ライフタイム（および、先程の例でも紹介した [dyn Trait](https://doc.rust-lang.org/edition-guide/rust-2018/trait-system/dyn-trait-for-trait-objects.html) と [impl Trait](https://doc.rust-lang.org/edition-guide/rust-2018/trait-system/impl-trait-for-returning-complex-types-with-ease.html)）は Rust Edition 2018 で導入されました。この記事も Edition 2018 の [Edition Guide](https://doc.rust-lang.org/edition-guide/rust-2018/) と、関連する RFC を参照しています。
+
+- ['_, the anonymous lifetime - The Edition Guide](https://doc.rust-lang.org/edition-guide/rust-2018/ownership-and-lifetimes/the-anonymous-lifetime.html)
+- [Lifetime elision in impl - The Edition Guide](https://doc.rust-lang.org/edition-guide/rust-2018/ownership-and-lifetimes/lifetime-elision-in-impl.html)
+- [1951-expand-impl-trait - The Rust RFC Book](https://rust-lang.github.io/rfcs/1951-expand-impl-trait.html#scoping-for-type-and-lifetime-parameters)
+
+以下の章では、これらの文献を参照しながら、匿名ライフタイムが何のために導入されて、どう役に立つのかを紹介します。
+
 
 
 ---
@@ -145,4 +181,4 @@ impl Read for StdinLock<'_> {
 [^1]: [Validating References with Lifetimes - The Rust Programming Language](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html) より抜粋。なお、"Call me Ishmael. Some years ago..." はハーマン・メルヴィル「白鯨」の書き出しの一節。
 [^2]: https://github.com/rust-lang/rust/blob/1.52.1/library/std/src/io/error.rs/#L534-L547
 [^3]: https://github.com/rust-lang/rust/blob/1.52.1/library/std/src/io/stdio.rs/#L416-L419
-
+[^4]: [Returning Traits with dyn - Rust By Example](https://doc.rust-lang.org/rust-by-example/trait/dyn.html)
