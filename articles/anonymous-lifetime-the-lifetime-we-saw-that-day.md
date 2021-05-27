@@ -122,7 +122,7 @@ fn doubled_items(&self) -> impl Iterator<Item = i32> + '_ {
 
 どちらの例でもライフタイム境界に匿名ライフタイムが使われていることがわかります。
 
-## Edition 2018
+### Edition 2018
 
 匿名ライフタイム（および、先程の例でも紹介した [dyn Trait](https://doc.rust-lang.org/edition-guide/rust-2018/trait-system/dyn-trait-for-trait-objects.html) と [impl Trait](https://doc.rust-lang.org/edition-guide/rust-2018/trait-system/impl-trait-for-returning-complex-types-with-ease.html)）は Rust Edition 2018 で導入されました。この記事も Edition 2018 の [Edition Guide](https://doc.rust-lang.org/edition-guide/rust-2018/) と、関連する RFC を参照しています。
 
@@ -131,6 +131,24 @@ fn doubled_items(&self) -> impl Iterator<Item = i32> + '_ {
 - [1951-expand-impl-trait - The Rust RFC Book](https://rust-lang.github.io/rfcs/1951-expand-impl-trait.html#scoping-for-type-and-lifetime-parameters)
 
 以下の章では、これらの文献を参照しながら、匿名ライフタイムが何のために導入されて、どう役に立つのかを紹介します。
+
+## 匿名ライフタイムの意義と効用
+
+この章では先程の例で見てもらった匿名ライフタイムの使い方それぞれについて、意義と効用について書いていきます。
+
+- 関数での匿名ライフタイム
+- `impl` ブロックでの匿名ライフタイム
+- `dyn Trait` と `impl Trait` での匿名ライフタイム
+
+### 関数での匿名ライフタイム
+
+関数の匿名ライフタイムを理解するためには、ライフタイムの省略ルールについて理解する必要があります。では、ここでライフタイムの省略ルールをおさらいしておきましょう。[^5]
+
+Rust では参照にはライフタイムを指定する必要がありますが、関数やクロージャのよくあるパターンでは省略できるようになっています。
+
+1. 引数に対して省略したライフタイムは、それぞれ別のライフタイムになります。
+2. 引数のライフタイムがひとつしかない場合は、そのライフタイムが返り値で省略されたライフタイムに適用されます。
+3. メソッドの引数に複数のライフタイムがあって、そのうちひとつが `&Self` 型か `&mut Self` 型である場合、そのライフタイムが返り値で省略されたライフタイムに適用されます。
 
 
 
@@ -182,3 +200,4 @@ fn doubled_items(&self) -> impl Iterator<Item = i32> + '_ {
 [^2]: https://github.com/rust-lang/rust/blob/1.52.1/library/std/src/io/error.rs/#L534-L547
 [^3]: https://github.com/rust-lang/rust/blob/1.52.1/library/std/src/io/stdio.rs/#L416-L419
 [^4]: [Returning Traits with dyn - Rust By Example](https://doc.rust-lang.org/rust-by-example/trait/dyn.html)
+[^5]: [Lifetime elision - The Rust Reference](https://doc.rust-lang.org/reference/lifetime-elision.html)
