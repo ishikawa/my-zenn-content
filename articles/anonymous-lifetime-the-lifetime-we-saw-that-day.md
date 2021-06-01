@@ -174,6 +174,52 @@ fn items<'a'>(&'a self) -> std::slice::Iter<'a, i32> {
 
 std::slice::[Iter](https://doc.rust-lang.org/1.52.0/std/slice/struct.Iter.html#impl-DoubleEndedIterator) はひとつのライフタイムを受け取るはずですが、上記の省略ルール 3 により省略されていたわけです。
 
+似たような例として、今度は返り値のライフタイムが省略される例を見てみましょう。
+
+```rust
+struct StrWrapper<'a> {
+    string: &'a str,
+}
+
+fn make_wrapper(string: &str) -> StrWrapper {
+    StrWrapper { string }
+}
+
+fn main() {
+    let w = make_wrapper("hello");
+    println!("string = {}", w.string); // string = hello
+}
+```
+
+`make_wrapper` 関数の返り値は参照を含む構造体 `StrWrapper` を返しますが、そのライフタイム `'a` は省略ルール 2 によって省略することができ、問題なくコンパイルできます。
+
+```sh
+$ rustc ./src/main.rs
+$ ./main
+string = hello
+```
+
+しかし、ここで [elided_lifetimes_in_paths](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#elided-lifetimes-in-paths) を有効にしてコンパイルしてみましょう。[^6]
+
+```sh
+$ rustc -D elided_lifetimes_in_paths ./src/main.rs
+error: hidden lifetime parameters in types are deprecated
+ --> ./src/main.rs:5:34
+  |
+5 | fn make_wrapper(string: &str) -> StrWrapper {
+  |                                  ^^^^^^^^^^- help: indicate the anonymous lifetime: `<'_>`
+  |
+  = note: requested on the command line with `-D elided-lifetimes-in-paths`
+```
+
+型のライフタイムパラメータが省略されていることでエラーになってしまいました。参照を含む構造体のライフタイムパラメータの省略は Rust 2018 から非推奨となりました。省略できてしまうと参照を借用できることが分かりづらくなるためです。
+
+TODO:
+
+- 返り値の構造体にライフタイムが含まれている例
+- 省略できる
+- 非推奨になった
+
 ---
 
 **記事にするときの構成**
@@ -223,3 +269,4 @@ std::slice::[Iter](https://doc.rust-lang.org/1.52.0/std/slice/struct.Iter.html#i
 [^3]: https://github.com/rust-lang/rust/blob/1.52.1/library/std/src/io/stdio.rs/#L416-L419
 [^4]: [Returning Traits with dyn - Rust By Example](https://doc.rust-lang.org/rust-by-example/trait/dyn.html)
 [^5]: [Lifetime elision - The Rust Reference](https://doc.rust-lang.org/reference/lifetime-elision.html)
+[^6]: rust-2018-idioms グループに含まれています。https://doc.rust-lang.org/rustc/lints/groups.html
