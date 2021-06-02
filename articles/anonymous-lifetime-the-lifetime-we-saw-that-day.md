@@ -199,7 +199,7 @@ $ ./main
 string = hello
 ```
 
-しかし、ここで [elided_lifetimes_in_paths](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#elided-lifetimes-in-paths) を有効にしてコンパイルしてみましょう。[^6]
+しかし、ここで [elided_lifetimes_in_paths](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#elided-lifetimes-in-paths) ルールを有効にしてコンパイルしてみましょう。[^6]
 
 ```sh
 $ rustc -D elided_lifetimes_in_paths ./src/main.rs
@@ -212,13 +212,28 @@ error: hidden lifetime parameters in types are deprecated
   = note: requested on the command line with `-D elided-lifetimes-in-paths`
 ```
 
-型のライフタイムパラメータが省略されていることでエラーになってしまいました。参照を含む構造体のライフタイムパラメータの省略は Rust 2018 から非推奨となりました。省略できてしまうと参照を借用できることが分かりづらくなるためです。
+型のライフタイムパラメータが省略されていることでエラーになってしまいました。参照を含む構造体のライフタイムパラメータの省略は Rust 2018 から非推奨となりました。ライフタイムパラメータが省略されてしまうと、構造体が参照を借用していることが分かりづらくなるためです（上記 [Lint ルール](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#elided-lifetimes-in-paths)に詳しい説明があります）。
 
-TODO:
+では、この警告を直すにはどうしたらいいでしょうか？　もちろん、ライフタイムを明示的に指定すれば大丈夫ですが、これはやはり面倒ですね。
 
-- 返り値の構造体にライフタイムが含まれている例
-- 省略できる
-- 非推奨になった
+```rust
+fn make_wrapper<'a>(string: &'a str) -> StrWrapper<'a> {
+    StrWrapper { string }
+}
+```
+
+そこで Edition 2018 では `'_` プレースホルダによって、ライフタイムが省略されていることを明示することができるようになりました。
+
+```rust
+fn make_wrapper(string: &str) -> StrWrapper<'_> {
+    StrWrapper { string }
+}
+```
+
+- `'_` プレースホルダによる**匿名ライフタイム**は宣言する必要がありません
+- 詳細は ['_, the anonymous lifetime - The Edition Guide](https://doc.rust-lang.org/edition-guide/rust-2018/ownership-and-lifetimes/the-anonymous-lifetime.html) を参照してください
+
+
 
 ---
 
