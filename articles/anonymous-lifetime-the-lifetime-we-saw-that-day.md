@@ -85,7 +85,7 @@ impl fmt::Display for Error {
 }
 ```
 
-std::fmt::[Formatter](https://doc.rust-lang.org/std/fmt/struct.Formatter.html) に指定するライフタイムに匿名ライフタイムが使われていることが分かります。これは関数の返り値ではなく引数で使われている点を除けば、最初の例と同じ使われ方ですね。
+std::fmt::[Formatter](https://doc.rust-lang.org/std/fmt/struct.Formatter.html) に指定するライフタイムに、匿名ライフタイムが使われていることが分かります。これは関数の返り値ではなく引数で使われている点を除けば、最初の例と同じ使われ方ですね。
 
 では、別の使われ方も見てみましょう。同じく標準ライブラリから。標準入力への排他アクセスを提供する std::io::[StdinLock](https://doc.rust-lang.org/1.52.0/std/io/struct.StdinLock.html) が std::io::[Read](https://doc.rust-lang.org/1.52.0/std/io/trait.Read.html) トレイトを実装しているコードです。[^3]
 
@@ -232,6 +232,37 @@ fn make_wrapper(string: &str) -> StrWrapper<'_> {
 
 - `'_` プレースホルダによる**匿名ライフタイム**は宣言する必要がありません
 - 詳細は ['_, the anonymous lifetime - The Edition Guide](https://doc.rust-lang.org/edition-guide/rust-2018/ownership-and-lifetimes/the-anonymous-lifetime.html) を参照してください
+
+### `impl` ブロックでの匿名ライフタイム
+
+また、impl ブロックでのライフタイムでも匿名ライフタイムを使うことができます。たとえば、先の例の StrWrapper で std::fmt::[Display](https://doc.rust-lang.org/1.52.0/std/fmt/trait.Display.html) トレイトを実装することを考えてみましょう。
+
+```rust
+impl<'a> Display for StrWrapper<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "string = {}", self.string)
+    }
+}
+
+fn main() {
+    let w = make_wrapper("hello");
+    println!("{}", w); // string = hello
+}
+```
+
+この `impl<'a> Display for StrWrapper<'a>` のライフタイムも省略して、構造体のライフタイムパラメータは匿名ライフタイムを使って明示することができます。
+
+```rust
+impl Display for StrWrapper<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "string = {}", self.string)
+    }
+}
+```
+
+しかし、ライフタイムの省略は楽なのですが、`impl` ブロックの場合は構造体に与えたライフタイムを参照できなくなってしまうので、使いどころは限られています。構造体の実装を書く `impl` ブロックでは今後追加するメソッドでライフタイムを参照する可能性があるので、省略せずに書くのがいいでしょう。逆に、実装すべきメソッドが決まっていて、トレイト自体にライフタイムを指定する必要のない Display トレイトのようなケースではコードの見通しも良くなり、非常に役立ちます。
+
+
 
 
 
