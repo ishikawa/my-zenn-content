@@ -3,7 +3,7 @@ title: "Rust で String の Vec を作る"
 emoji: "🙆"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["rust"]
-published: false
+published: true
 ---
 
 Rust で文字列 `&str` の [Vec](https://doc.rust-lang.org/1.52.0/std/vec/struct.Vec.html) を作るのは簡単です。
