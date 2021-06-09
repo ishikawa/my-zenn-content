@@ -282,6 +282,93 @@ impl Foo<'_> {
 
 
 
+## Todo
+
+- ~~static ライフタイムについて理解する~~
+- トレイトのライフタイム境界とライフタイムパラメータ
+
+---
+
+- **引数の位置の impl Trait はジェネリクスのトレイト境界のショートハンド**
+- **Trait object: `dyn` Trait**
+  - Java のオブジェクトに近い。メソッドは動的ディスパッチされる
+  - ポインタで渡さなければならない
+  - Generic な関数ではなく、トレイトを実装したあらゆる値を受け取れる
+- **返り値の位置の impl Trait はジェネリクスのショートハンドではない**
+  - ジェネリクスは、呼ぶ側が実際の型を決める
+  - impl Trait は呼ばれる関数側が決める。関数の本体から推論される
+  - 呼ぶ側はトレイト境界しか分からない
+  - ただし、今のところ実際の型は一つのみ
+
+---
+
+**この 3 種類のうちいずれを使うかの判断には、これらがどのように実装しているかを知っていると役に立つ**
+
+- ジェネリクスと引数の impl Trait
+  - monomorphisation (単相型、単相化？)
+  - それぞれの型インスタンスに対して関数のコピーを作成する。
+  - たとえば、`fn f(b: impl Bar)` を `Foo` と `Bar` で呼び出しているなら、関数のコピーがふたつできる。
+  - 一切の間接呼び出しが発生しないのでパフォーマンスは良いが、コードサイズは増える
+- 返り値の impl Trait には monomorphisation は必要なく、単に具象型で置き換えられる。
+- Trait object
+  - こちらも monomorphisation は必要ない
+  - Trait object の型は fat pointer で実装されている
+  - 参照.`&dyn Bar` は値への参照だけでなく vtable への参照を含む
+  - つまり動的ディスパッチされる
+
+---
+
+Object Safety
+
+- すべてのトレイトが Trait object になれるわけではない
+  - "Object safe" なトレイトのみ
+- なぜ必要かというと、`&dyn Trait` を `&impl Trait` な引数に渡すため
+
+---
+
+**Implicit bounds**
+
+- `Send` や `Sync` のようなトレイトは、型を構成するそれぞれの型がこれらを実装している限り、自動で実装される
+- `impl Trait` が返り値で使われた場合、これらのトレイトは関数本体から暗黙のうちに推論される
+- つまり、`+ Send + Sync` を `impl Trait` に対して書く必要はない
+  - Trait object では必要
+
+---
+
+’static` ライフタイムについて**
+
+- `static` 宣言で定数を作成する
+- 文字列リテラル `&'static str` 型を持つ変数を作成する
+  - これらは実行バイナリの一部として格納される。
+  - プログラムが動作している間、常に有効
+
+**これらは `'static` ライフタイム**
+
+```rust
+pub fn downcast_ref<T: Error + 'static>(&self) -> Option<&T> { ... }
+```
+
+**これが `'static` ライフタイム境界**。
+
+`T` 内の全ての参照は `'static` ライフタイムよりも長く（つまり同じだけ）生きていなければならない。
+
+---
+
+clippy が警告を表示していくれる
+
+```
+error: explicit lifetimes given in parameter types where they could be elided (or replaced with `'_` if needed by type declaration)
+ --> src/language_server/description.rs:9:1
+  |
+9 | fn format_type_specifier<'a>(ty: Option<TypeKind<'a>>) -> String {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `-D clippy::needless-lifetimes` implied by `-D warnings`
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
+
+error: aborting due to previous error
+```
+
 
 
 ---
