@@ -280,6 +280,45 @@ impl Foo<'_> {
 
 ### `dyn` トレイト / `impl` トレイトでの匿名ライフタイム
 
+最後に、関数シグネチャに現れるトレイトにおける匿名ライフタイムについて見ていきます。
+
+「関数シグネチャに現れるトレイト」には次の 3 種類があります。
+
+1. 引数の位置の `impl` トレイト
+2. `dyn` トレイト
+3. 返り値の位置の `impl` トレイト
+
+このうち `dyn` トレイトが一番古くからある機能ですが、引数の位置の `impl` トレイトがもっとも簡単なので、先に説明します。
+
+#### 引数の位置の `impl` トレイト
+
+ジェネリクスの型パラメーターにはトレイト境界を指定することができます。
+
+```rust
+fn println_value<T>(value: T)
+where
+    T: Display,
+{
+    println!("value = {}", value);
+}
+```
+
+こう書くこともできます。
+
+```rust
+fn println_value<T: Display>(value: T) {
+    println!("value = {}", value);
+}
+```
+
+さらに、引数位置の `impl` トレイトで型パラメータをなくすことができます。
+
+```rust
+fn println_value(value: impl Display) {
+    println!("value = {}", value);
+}
+```
+
 
 
 ## Todo
@@ -332,6 +371,13 @@ Object Safety
 - `impl Trait` が返り値で使われた場合、これらのトレイトは関数本体から暗黙のうちに推論される
 - つまり、`+ Send + Sync` を `impl Trait` に対して書く必要はない
   - Trait object では必要
+- 一方、ライフタイム境界はもっと複雑
+  - `dyn Trait` はデフォルトで `'static` ライフタイム境界を持つ
+  - [Default trait object lifetime](https://doc.rust-lang.org/reference/lifetime-elision.html#default-trait-object-lifetimes)
+- 型変数と引数位置の `impl Trait` は暗黙的なライフタイム境界を持たない。
+  - `impl Trait` の実体の型はスコープ中の型変数に依存する
+  - ライフタイム境界も同様
+- 何も見つからなければ `'sttaic`
 
 ---
 
