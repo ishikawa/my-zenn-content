@@ -311,13 +311,15 @@ fn println_value<T: Display>(value: T) {
 }
 ```
 
-さらに、引数位置の `impl` トレイトで型パラメータをなくすことができます。
+さらに、引数位置の `impl` トレイトを使うともっと簡単に書くことができます。
 
 ```rust
 fn println_value(value: impl Display) {
     println!("value = {}", value);
 }
 ```
+
+型パラメータをなくすことができ、より直感的になりましたね。このように、引数位置の `impl` トレイトは、型パラメータとトレイト境界のより短い記法です。[^7]
 
 
 
@@ -467,3 +469,5 @@ error: aborting due to previous error
 [^4]: [Returning Traits with dyn - Rust By Example](https://doc.rust-lang.org/rust-by-example/trait/dyn.html)
 [^5]: [Lifetime elision - The Rust Reference](https://doc.rust-lang.org/reference/lifetime-elision.html)
 [^6]: rust-2018-idioms グループに含まれています。https://doc.rust-lang.org/rustc/lints/groups.html
+[^7]: ただし、全く同じではなく違いもあります。`T: Trait` で定義された関数は呼び出し側で実際の型を明示的に指定することができます (e.g. `foo::<usize>(1)`) が、`impl Trait` ではこれができません。
+
