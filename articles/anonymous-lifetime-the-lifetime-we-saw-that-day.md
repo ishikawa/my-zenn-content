@@ -313,6 +313,47 @@ impl Foo {
 このように返り値に「実際の型」を指定する必要がありましたが、これを
 
 ```rust
+fn items(&self) -> impl Iterator<Item = &i32> {
+    self.items.iter()
+}
+```
+
+このように具体的な型を隠蔽することができます。また、実際のところ、クロージャを使ったイテレータでは具体的な型を記述することができないため、トレイトオブジェクトを Box で返す必要がありましたが、これも impl Trait で簡単に返すことができます。
+
+```rust
+fn even_items(&self) -> impl Iterator<Item = &i32> {
+    self.items.iter().filter(|x| *x % 2 == 0)
+}
+```
+
+TODO
+
+```rust
+fn double_items(&self) -> impl Iterator<Item = i32> + '_ {
+    self.items.iter().map(|x| x * 2)
+}
+```
+
+```
+error[E0759]: `self` has an anonymous lifetime `'_` but it needs to satisfy a `'static` lifetime requirement
+  --> ./src/main.rs:15:20
+   |
+14 |     fn double_items(&self) -> impl Iterator<Item = i32> {
+   |                     ----- this data with an anonymous lifetime `'_`...
+15 |         self.items.iter().map(|x| x * 2)
+   |         ---------- ^^^^
+   |         |
+   |         ...is captured here...
+   |
+note: ...and is required to live as long as `'static` here
+  --> ./src/main.rs:14:31
+   |
+14 |     fn double_items(&self) -> impl Iterator<Item = i32> {
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: to declare that the `impl Trait` captures data from argument `self`, you can add an explicit `'_` lifetime bound
+   |
+14 |     fn double_items(&self) -> impl Iterator<Item = i32> + '_ {
+   |                                                         ^^^^
 
 ```
 
