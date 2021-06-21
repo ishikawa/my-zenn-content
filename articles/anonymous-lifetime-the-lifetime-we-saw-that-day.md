@@ -318,7 +318,9 @@ fn items(&self) -> impl Iterator<Item = &i32> {
 }
 ```
 
-このように具体的な型を隠蔽することができます。また、実際のところ、クロージャを使ったイテレータでは具体的な型を記述することができないため、トレイトオブジェクトを Box で返す必要がありましたが、これも impl Trait で簡単に返すことができます。
+このように具体的な型を隠蔽することができます。
+
+また、クロージャを使ったイテレータでは具体的な型を記述することができないため、トレイトオブジェクトを Box で返す必要がありました。これも impl トレイトを使えば簡単です。
 
 ```rust
 fn even_items(&self) -> impl Iterator<Item = &i32> {
@@ -326,10 +328,10 @@ fn even_items(&self) -> impl Iterator<Item = &i32> {
 }
 ```
 
-TODO
+しかし、簡単にはいかないケースもあります。今度は各要素を倍にして返すイテレータを書いてみましょう。
 
 ```rust
-fn double_items(&self) -> impl Iterator<Item = i32> + '_ {
+fn double_items(&self) -> impl Iterator<Item = i32> {
     self.items.iter().map(|x| x * 2)
 }
 ```
@@ -354,8 +356,26 @@ help: to declare that the `impl Trait` captures data from argument `self`, you c
    |
 14 |     fn double_items(&self) -> impl Iterator<Item = i32> + '_ {
    |                                                         ^^^^
-
 ```
+
+ライフタイムのエラーが起きてしまいました。これはどういうことでしょうか？
+
+詳しい説明は省きますが、後者の例では、[^8]
+
+- 型パラメータに参照を含まないため、返り値のライフタイムは `'static` と推論される
+- しかし、関数本体で返されている実際の値は `self` のライフタイム
+
+このように、コンパイアによるライフタイムの推論結果が正しくないときは、明示的にライフタイムを指定してやる必要があります。そして、ここで指定すべきなのが匿名ライフタイムです。匿名ライフタイムには `&Self` 型引数のライフタイムが割り当てられています。
+
+```rust
+fn double_items(&self) -> impl Iterator<Item = i32> + '_ {
+    self.items.iter().map(|x| x * 2)
+}
+```
+
+
+
+
 
 
 
@@ -555,4 +575,5 @@ error: aborting due to previous error
 [^5]: [Lifetime elision - The Rust Reference](https://doc.rust-lang.org/reference/lifetime-elision.html)
 [^6]: rust-2018-idioms グループに含まれています。https://doc.rust-lang.org/rustc/lints/groups.html
 [^7]: ただし、全く同じではなく違いもあります。`T: Trait` で定義された関数は呼び出し側で実際の型を明示的に指定することができます (e.g. `foo::<usize>(1)`) が、`impl Trait` ではこれができません。
+[^8]: [dyn Trait and impl Trait in Rust](https://www.ncameron.org/blog/dyn-trait-and-impl-trait-in-rust/#implicit-bounds)
 
