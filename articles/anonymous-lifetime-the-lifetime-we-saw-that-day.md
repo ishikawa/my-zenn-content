@@ -10,11 +10,13 @@ published: false
 
 多くの初心者と同じようにライフタイムで苦しめられています。最近も**匿名ライフタイム**のことがよく分からず、いくつかプログラムを書いたりドキュメントや Web で情報を漁って調べていました。調べはじめた当初よりは理解も進んで、気をつけるポイントも分かってきたので記事にまとめておきます。
 
-この記事では同じような Rust 初心者向けに以下のことを説明していきます。
+この記事では以下のことを説明していきます。
 
 - そもそも匿名ライフタイムとは何なのか？
 - 何のためにあるのか？
 - 日々のプログラミングでどのように役立つのか？
+
+けっこう長い記事なので、時間がない方は「まとめ」を読んでください。
 
 ## 匿名ライフタイムとは何か？
 
@@ -40,7 +42,7 @@ fn main() {
 }
 ```
 
-もちろん、`'a` というライフタイムは名前がついているので匿名ライフタイムではありません。
+もちろん、*ImportantExcerpt* 構造体の持つ `'a` というライフタイムは名前がついているので「**匿名**」ライフタイムではありません。
 
 では、このコードを少し改変します。「最初のセンテンスを切り出して *ImportantExcerpt* 構造体を返す」処理を関数に切り出してみましょう。
 
@@ -87,7 +89,7 @@ impl fmt::Display for Error {
 
 std::fmt::[Formatter](https://doc.rust-lang.org/std/fmt/struct.Formatter.html) に指定するライフタイムに、匿名ライフタイムが使われていることが分かります。これは関数の返り値ではなく引数で使われている点を除けば、最初の例と同じ使われ方ですね。
 
-では、別の使われ方も見てみましょう。同じく標準ライブラリから。標準入力への排他アクセスを提供する std::io::[StdinLock](https://doc.rust-lang.org/1.52.0/std/io/struct.StdinLock.html) が std::io::[Read](https://doc.rust-lang.org/1.52.0/std/io/trait.Read.html) トレイトを実装しているコードです。[^3]
+別の使われ方も見てみましょう。同じく標準ライブラリから。標準入力への排他アクセスを提供する std::io::[StdinLock](https://doc.rust-lang.org/1.52.0/std/io/struct.StdinLock.html) が std::io::[Read](https://doc.rust-lang.org/1.52.0/std/io/trait.Read.html) トレイトを実装しているコードです。[^3]
 
 ```rust
 impl Read for StdinLock<'_> {
@@ -98,7 +100,7 @@ impl Read for StdinLock<'_> {
 
 今度は関数シグネチャではなく impl ブロックの構造体に与えるライフタイムに匿名ライフタイムが使用されています。
 
-最後に、トレイトオブジェクトとライフタイム境界の組み合わせです。整数のベクタを持つ構造体に、各要素を 2 倍にするイテレータを返すメソッド `double_items` を実装します。[^4]
+最後に、トレイトオブジェクトと[ライフタイム境界](https://doc.rust-lang.org/rust-by-example/scope/lifetime/lifetime_bounds.html)の組み合わせです。整数のベクタを持つ構造体に、各要素を 2 倍にするイテレータを返すメソッド `doubled_items` メソッドを実装します。[^4]
 
 ```rust
 struct Foo {
@@ -130,7 +132,11 @@ fn doubled_items(&self) -> impl Iterator<Item = i32> + '_ {
 - [Lifetime elision in impl - The Edition Guide](https://doc.rust-lang.org/edition-guide/rust-2018/ownership-and-lifetimes/lifetime-elision-in-impl.html)
 - [1951-expand-impl-trait - The Rust RFC Book](https://rust-lang.github.io/rfcs/1951-expand-impl-trait.html#scoping-for-type-and-lifetime-parameters)
 
-以下の章では、これらの文献を参照しながら、匿名ライフタイムが何のために導入されて、どう役に立つのかを紹介します。
+また、dyn Trait と impl Trait については、以下の記事が非常に参考になりました。
+
+- [dyn Trait and impl Trait in Rust](https://www.ncameron.org/blog/dyn-trait-and-impl-trait-in-rust/)
+
+以下の章では、これらを参照しながら、匿名ライフタイムが何のために導入されて、どう役に立つのかを紹介します。
 
 ## 匿名ライフタイムの意義と効用
 
@@ -331,7 +337,7 @@ fn even_items(&self) -> impl Iterator<Item = &i32> {
 しかし、簡単にはいかないケースもあります。今度は各要素を倍にして返すイテレータを書いてみましょう。
 
 ```rust
-fn double_items(&self) -> impl Iterator<Item = i32> {
+fn doubled_items(&self) -> impl Iterator<Item = i32> {
     self.items.iter().map(|x| x * 2)
 }
 ```
@@ -340,8 +346,8 @@ fn double_items(&self) -> impl Iterator<Item = i32> {
 error[E0759]: `self` has an anonymous lifetime `'_` but it needs to satisfy a `'static` lifetime requirement
   --> ./src/main.rs:15:20
    |
-14 |     fn double_items(&self) -> impl Iterator<Item = i32> {
-   |                     ----- this data with an anonymous lifetime `'_`...
+14 |     fn doubled_items(&self) -> impl Iterator<Item = i32> {
+   |                      ----- this data with an anonymous lifetime `'_`...
 15 |         self.items.iter().map(|x| x * 2)
    |         ---------- ^^^^
    |         |
@@ -350,12 +356,12 @@ error[E0759]: `self` has an anonymous lifetime `'_` but it needs to satisfy a `'
 note: ...and is required to live as long as `'static` here
   --> ./src/main.rs:14:31
    |
-14 |     fn double_items(&self) -> impl Iterator<Item = i32> {
-   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+14 |     fn doubled_items(&self) -> impl Iterator<Item = i32> {
+   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^
 help: to declare that the `impl Trait` captures data from argument `self`, you can add an explicit `'_` lifetime bound
    |
-14 |     fn double_items(&self) -> impl Iterator<Item = i32> + '_ {
-   |                                                         ^^^^
+14 |     fn doubled_items(&self) -> impl Iterator<Item = i32> + '_ {
+   |                                                          ^^^^
 ```
 
 ライフタイムのエラーが起きてしまいました。これはどういうことでしょうか？
@@ -368,7 +374,7 @@ help: to declare that the `impl Trait` captures data from argument `self`, you c
 このように、コンパイアによるライフタイムの推論結果が正しくないときは、明示的にライフタイムを指定してやる必要があります。そして、ここで指定すべきなのが匿名ライフタイムです。匿名ライフタイムには `&Self` 型引数のライフタイムが割り当てられています。
 
 ```rust
-fn double_items(&self) -> impl Iterator<Item = i32> + '_ {
+fn doubled_items(&self) -> impl Iterator<Item = i32> + '_ {
     self.items.iter().map(|x| x * 2)
 }
 ```
@@ -385,7 +391,7 @@ pub struct Screen {
 
 トレイト・オブジェクトのライフタイムは[ライフタイム境界](https://doc.rust-lang.org/rust-by-example/scope/lifetime/lifetime_bounds.html)によって推論されます。ライフタイム境界が省略された場合、この記事の冒頭で解説したライフタイムの省略ルールには従わず、[*default object lifetime bound*](https://doc.rust-lang.org/reference/lifetime-elision.html#default-trait-object-lifetimes) というルールに従います。
 
-このルールについてこれ以上は追求しませんが、特に推論の材料となる要素がなければ `'static` ライフタイム境界が割り当てられます（参照を含まない構造体などは `'static` ライフタイム境界で許可されるので、これはまあ妥当な判断でしょう）。
+このルールについてこれ以上深くは追求しませんが、特に推論の材料となる要素がなければ `'static` ライフタイム境界が割り当てられます（参照を含まない構造体などは `'static` ライフタイム境界で許可されるので、これはまあ妥当な判断でしょう）。
 
 このルールによって割り当てられたライフタイムが正しくないときは、明示的にライフタイムを指定してやる必要があります...。そうです。お察しの通り、ここでも匿名ライフタイムが使えます。
 
@@ -395,194 +401,33 @@ fn bar(x: &i32) -> Box<dyn Debug + '_> {
 }
 ```
 
-
-
-
-
-
-
-
-
-
-
-このうち `dyn` トレイトが一番古くからある機能ですが、引数の位置の `impl` トレイトがもっとも簡単なので、先に説明します。
-
-#### 引数の位置の `impl` トレイト
-
-ジェネリクスの型パラメーターにはトレイト境界を指定することができます。
+匿名ライフタイムを使うことで、通常のライフタイムの省略ルールが適用されます。つまり、上記の例だと以下のように解釈されるわけです。
 
 ```rust
-fn println_value<T>(value: T)
-where
-    T: Display,
-{
-    println!("value = {}", value);
+fn bar<'a'>(x: &'a i32) -> Box<dyn Debug + 'a> {
+    Box::new(x)
 }
 ```
 
-こう書くこともできます。
+## まとめ
+
+長々と書いてきましたが、匿名ライフタイムについてまとめます。
+
+- **ライフタイムは[省略ルール](https://doc.rust-lang.org/reference/lifetime-elision.html)に従って省略することができる**
+- **省略ルールに従ったライフタイムを明示するプレースホルダとして `'_` が使える**
+- **`dyn` トレイトと `impl` トレイトのライフタイム境界で省略ルールを適用するために `'_` が使える**
+
+省略ルールを理解し、匿名ライフタイムの使いどころを知ることでライフタイムについての理解も深まると思います。最後に、これらを活用したプログラムを書くときに役立つ設定を紹介して記事を終わります。
+
+まず、Edition 2018 の慣習的な書き方を学ぶためにも、Rust の Lint で [rust-2018-idioms](https://doc.rust-lang.org/rustc/lints/groups.html) グループを有効にしましょう（デフォルトでは無効になっています）。rustc に `-D rust-2018-idioms` オプションを渡すか、crate の先頭で、
 
 ```rust
-fn println_value<T: Display>(value: T) {
-    println!("value = {}", value);
-}
+#![deny(rust_2018_idioms)]
 ```
 
-さらに、引数位置の `impl` トレイトを使うともっと簡単に書くことができます。
+を指定することでエラー扱いにできます。
 
-```rust
-fn println_value(value: impl Display) {
-    println!("value = {}", value);
-}
-```
-
-型パラメータをなくすことができ、より直感的になりましたね。このように、引数位置の `impl` トレイトは、型パラメータとトレイト境界のより短い記法です。[^7]
-
-*TODO: 匿名ライフタイムについて書く。そもそも、引数位置では匿名ライフタイムが使えない。構成を変えないといけない*
-
-
-
-
-
-
-
-## Todo
-
-- ~~static ライフタイムについて理解する~~
-- トレイトのライフタイム境界とライフタイムパラメータ
-
----
-
-- **引数の位置の impl Trait はジェネリクスのトレイト境界のショートハンド**
-- **Trait object: `dyn` Trait**
-  - Java のオブジェクトに近い。メソッドは動的ディスパッチされる
-  - ポインタで渡さなければならない
-  - Generic な関数ではなく、トレイトを実装したあらゆる値を受け取れる
-- **返り値の位置の impl Trait はジェネリクスのショートハンドではない**
-  - ジェネリクスは、呼ぶ側が実際の型を決める
-  - impl Trait は呼ばれる関数側が決める。関数の本体から推論される
-  - 呼ぶ側はトレイト境界しか分からない
-  - ただし、今のところ実際の型は一つのみ
-
----
-
-**この 3 種類のうちいずれを使うかの判断には、これらがどのように実装しているかを知っていると役に立つ**
-
-- ジェネリクスと引数の impl Trait
-  - monomorphisation (単相型、単相化？)
-  - それぞれの型インスタンスに対して関数のコピーを作成する。
-  - たとえば、`fn f(b: impl Bar)` を `Foo` と `Bar` で呼び出しているなら、関数のコピーがふたつできる。
-  - 一切の間接呼び出しが発生しないのでパフォーマンスは良いが、コードサイズは増える
-- 返り値の impl Trait には monomorphisation は必要なく、単に具象型で置き換えられる。
-- Trait object
-  - こちらも monomorphisation は必要ない
-  - Trait object の型は fat pointer で実装されている
-  - 参照.`&dyn Bar` は値への参照だけでなく vtable への参照を含む
-  - つまり動的ディスパッチされる
-
----
-
-Object Safety
-
-- すべてのトレイトが Trait object になれるわけではない
-  - "Object safe" なトレイトのみ
-- なぜ必要かというと、`&dyn Trait` を `&impl Trait` な引数に渡すため
-
----
-
-**Implicit bounds**
-
-- `Send` や `Sync` のようなトレイトは、型を構成するそれぞれの型がこれらを実装している限り、自動で実装される
-- `impl Trait` が返り値で使われた場合、これらのトレイトは関数本体から暗黙のうちに推論される
-- つまり、`+ Send + Sync` を `impl Trait` に対して書く必要はない
-  - Trait object では必要
-- 一方、ライフタイム境界はもっと複雑
-  - `dyn Trait` はデフォルトで `'static` ライフタイム境界を持つ
-  - [Default trait object lifetime](https://doc.rust-lang.org/reference/lifetime-elision.html#default-trait-object-lifetimes)
-- 型変数と引数位置の `impl Trait` は暗黙的なライフタイム境界を持たない。
-  - `impl Trait` の実体の型はスコープ中の型変数に依存する
-  - ライフタイム境界も同様
-- 何も見つからなければ `'sttaic`
-
----
-
-**’static` ライフタイムについて**
-
-- `static` 宣言で定数を作成する
-- 文字列リテラル `&'static str` 型を持つ変数を作成する
-  - これらは実行バイナリの一部として格納される。
-  - プログラムが動作している間、常に有効
-
-**これらは `'static` ライフタイム**
-
-```rust
-pub fn downcast_ref<T: Error + 'static>(&self) -> Option<&T> { ... }
-```
-
-**これが `'static` ライフタイム境界**。
-
-`T` 内の全ての参照は `'static` ライフタイムよりも長く（つまり同じだけ）生きていなければならない。あるいは参照を含まない（こちらのケースが多い）
-
----
-
-clippy が警告を表示していくれる
-
-```
-error: explicit lifetimes given in parameter types where they could be elided (or replaced with `'_` if needed by type declaration)
- --> src/language_server/description.rs:9:1
-  |
-9 | fn format_type_specifier<'a>(ty: Option<TypeKind<'a>>) -> String {
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: `-D clippy::needless-lifetimes` implied by `-D warnings`
-  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes
-
-error: aborting due to previous error
-```
-
-
-
----
-
-**記事にするときの構成**
-
-- はじめに
-  - プライベートで Rust を書き始めて数ヶ月
-    - ライフタイムに苦しめられている
-  - 匿名ライフタイムについてよく分からなかったので調べた
-    - そもそも何なのか？
-    - 何のためにあるのか？
-    - 日々のプログラミングでどのように役立つのか？
-- 匿名ライフタイムとは何か？
-  - 匿名ライフタイムの例
-    - 適当なプログラム
-    - 標準ライブラリの例
-    - `impl Trait` を返すときの例
-  - Edition 2018 で導入された詳細
-    - これらをちゃんと読めば詳細は理解できる
-    - 何のために導入されて、どう役立つのかを中心に書きます
-- 匿名ライフタイムの意義と効用
-  - 関数での匿名ライフタイム
-    - ライフタイムの省略ルールをおさらい
-    - 省略されていることを明示するための匿名ライフタイム
-    - 何が嬉しいのか？
-      - 参照を持つ構造体を返す例
-      - Edition 2018 での新しい警告
-  - `impl` ブロックでの匿名ライフタイム
-    - Edition 2018 で導入された
-    - Trait を実装するときに便利
-  - Trait object の匿名ライフタイム
-    - `impl Trait` を返すときの例再掲
-    - ライフタイムの省略ルール再び
-    - 匿名ライフタイムでルールを変える
-- まとめ
-  - 構造体が他の参照を借用していることを示すのはいいこと
-    - Edition 2018 の idiom 警告は有効にしておいた方がいい
-  - 匿名ライフタイムを闇雲に使わない
-    - 借用チェッカーとライフタイムが通っても意味的に正しいとは限らない
-    - 匿名ライフタイムで十分だと明らかな場合のみ使う
-      - 関数の引数と返り値が省略されたライフタイムで動くが、ライフタイムを明示したい場合
-      - Trait を実装するが、メソッドでライフタイムが不要な場
+また、ライフタイムを明示的に指定しなくても省略ルールによって省略できるケースは clippy が [needless_lifetime](https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes) ルールで検出してくれます。
 
 ---
 
@@ -593,5 +438,5 @@ error: aborting due to previous error
 [^5]: [Lifetime elision - The Rust Reference](https://doc.rust-lang.org/reference/lifetime-elision.html)
 [^6]: rust-2018-idioms グループに含まれています。https://doc.rust-lang.org/rustc/lints/groups.html
 [^7]: ただし、全く同じではなく違いもあります。`T: Trait` で定義された関数は呼び出し側で実際の型を明示的に指定することができます (e.g. `foo::<usize>(1)`) が、`impl Trait` ではこれができません。
-[^8]: [dyn Trait and impl Trait in Rust](https://www.ncameron.org/blog/dyn-trait-and-impl-trait-in-rust/#implicit-bounds), [1951-expand-impl-trait - The Rust RFC Book](https://rust-lang.github.io/rfcs/1951-expand-impl-trait.html#scoping-for-type-and-lifetime-parameters)
+[^8]: [1951-expand-impl-trait - The Rust RFC Book](https://rust-lang.github.io/rfcs/1951-expand-impl-trait.html#scoping-for-type-and-lifetime-parameters) impl Trait のライフタイムについては、この RFC に書かれています。
 
