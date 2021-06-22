@@ -373,6 +373,28 @@ fn double_items(&self) -> impl Iterator<Item = i32> + '_ {
 }
 ```
 
+#### `dyn` トレイト
+
+`dyn` トレイトは[トレイト・オブジェクト](https://doc.rust-lang.org/reference/types/trait-object.html)を表すための記法です。
+
+```rust
+pub struct Screen {
+    pub components: Vec<Box<dyn Clone>>,
+}
+```
+
+トレイト・オブジェクトのライフタイムは[ライフタイム境界](https://doc.rust-lang.org/rust-by-example/scope/lifetime/lifetime_bounds.html)によって推論されます。ライフタイム境界が省略された場合、この記事の冒頭で解説したライフタイムの省略ルールには従わず、[*default object lifetime bound*](https://doc.rust-lang.org/reference/lifetime-elision.html#default-trait-object-lifetimes) というルールに従います。
+
+このルールについてこれ以上は追求しませんが、特に推論の材料となる要素がなければ `'static` ライフタイム境界が割り当てられます（参照を含まない構造体などは `'static` ライフタイム境界で許可されるので、これはまあ妥当な判断でしょう）。
+
+このルールによって割り当てられたライフタイムが正しくないときは、明示的にライフタイムを指定してやる必要があります...。そうです。お察しの通り、ここでも匿名ライフタイムが使えます。
+
+```rust
+fn bar(x: &i32) -> Box<dyn Debug + '_> {
+    Box::new(x)
+}
+```
+
 
 
 
@@ -417,10 +439,6 @@ fn println_value(value: impl Display) {
 型パラメータをなくすことができ、より直感的になりましたね。このように、引数位置の `impl` トレイトは、型パラメータとトレイト境界のより短い記法です。[^7]
 
 *TODO: 匿名ライフタイムについて書く。そもそも、引数位置では匿名ライフタイムが使えない。構成を変えないといけない*
-
-#### `dyn` トレイト
-
-`dyn` トレイトはトレイト・オブジェクトを
 
 
 
@@ -488,7 +506,7 @@ Object Safety
 
 ---
 
-’static` ライフタイムについて**
+**’static` ライフタイムについて**
 
 - `static` 宣言で定数を作成する
 - 文字列リテラル `&'static str` 型を持つ変数を作成する
@@ -503,7 +521,7 @@ pub fn downcast_ref<T: Error + 'static>(&self) -> Option<&T> { ... }
 
 **これが `'static` ライフタイム境界**。
 
-`T` 内の全ての参照は `'static` ライフタイムよりも長く（つまり同じだけ）生きていなければならない。
+`T` 内の全ての参照は `'static` ライフタイムよりも長く（つまり同じだけ）生きていなければならない。あるいは参照を含まない（こちらのケースが多い）
 
 ---
 
@@ -575,5 +593,5 @@ error: aborting due to previous error
 [^5]: [Lifetime elision - The Rust Reference](https://doc.rust-lang.org/reference/lifetime-elision.html)
 [^6]: rust-2018-idioms グループに含まれています。https://doc.rust-lang.org/rustc/lints/groups.html
 [^7]: ただし、全く同じではなく違いもあります。`T: Trait` で定義された関数は呼び出し側で実際の型を明示的に指定することができます (e.g. `foo::<usize>(1)`) が、`impl Trait` ではこれができません。
-[^8]: [dyn Trait and impl Trait in Rust](https://www.ncameron.org/blog/dyn-trait-and-impl-trait-in-rust/#implicit-bounds)
+[^8]: [dyn Trait and impl Trait in Rust](https://www.ncameron.org/blog/dyn-trait-and-impl-trait-in-rust/#implicit-bounds), [1951-expand-impl-trait - The Rust RFC Book](https://rust-lang.github.io/rfcs/1951-expand-impl-trait.html#scoping-for-type-and-lifetime-parameters)
 
