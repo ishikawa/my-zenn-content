@@ -173,7 +173,7 @@ impl Foo {
 構造体 Foo の `items` メソッドで省略されたライフタイムを明示すると以下のようになります。
 
 ```rust
-fn items<'a'>(&'a self) -> std::slice::Iter<'a, i32> {
+fn items<'a>(&'a self) -> std::slice::Iter<'a, i32> {
     self.items.iter()
 }
 ```
@@ -404,7 +404,7 @@ fn bar(x: &i32) -> Box<dyn Debug + '_> {
 匿名ライフタイムを使うことで、通常のライフタイムの省略ルールが適用されます。つまり、上記の例だと以下のように解釈されるわけです。
 
 ```rust
-fn bar<'a'>(x: &'a i32) -> Box<dyn Debug + 'a> {
+fn bar<'a>(x: &'a i32) -> Box<dyn Debug + 'a> {
     Box::new(x)
 }
 ```
