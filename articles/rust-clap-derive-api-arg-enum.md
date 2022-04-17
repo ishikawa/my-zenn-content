@@ -3,7 +3,7 @@ title: "Clap の Derive API で列挙型のコマンドラインオプション�
 emoji: "😊"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["rust"]
-published: false
+published: true
 ---
 
 [Clap v3](https://github.com/clap-rs/clap) の [Derive API](https://github.com/clap-rs/clap/blob/v3.1.9/examples/tutorial_derive/README.md) と [ArgEnum](https://docs.rs/clap/3.1.9/clap/trait.ArgEnum.html) を使うと、列挙型 (Enum) のコマンドラインオプションを簡単に実装することができる（[ソースコード](https://github.com/ishikawa/example-rust-clap-derive-api-arg-enum/blob/main/src/bin/example-1.rs)）。
