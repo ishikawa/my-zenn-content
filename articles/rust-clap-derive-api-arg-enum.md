@@ -171,6 +171,42 @@ fn to_possible_value<'a>(&self) -> Option<clap::PossibleValue<'a>> {
 
 ただ、デフォルト実装のコードを読めば分かるが、上記の `clap::ArgEnum::to_possible_value` の実装と合わせると、$n^2$ のアルゴリズムになってしまう。とはいえ、これが問題になるほど、オプションの個数が多くなることはないだろう。
 
+## (追記) Copy トレイトを実装しない方法
 
+上記の例では、配列定数 `LEVEL_VALUE_VARIANTS` で `Level` 構造体の取りうる値を直接記述するため、`Level` 構造体には `Copy` トレイトを実装する必要があった。しかし、これが望ましくない場合もあるだろう。この場合、`clap::ArgEnum` を実装するのではなく、possible_values を直接指定することで回避できる（[ソースコード](https://github.com/ishikawa/example-rust-clap-derive-api-arg-enum/blob/main/src/bin/example-5.rs)）。
+
+```rust
+const LEVEL_POSSIBLE_VALUES: [&str; LEVEL_NAME_TO_VALUE_VARIANTS.len()] = [
+    LEVEL_NAME_TO_VALUE_VARIANTS[0].0,
+    LEVEL_NAME_TO_VALUE_VARIANTS[1].0,
+    LEVEL_NAME_TO_VALUE_VARIANTS[2].0,
+    LEVEL_NAME_TO_VALUE_VARIANTS[3].0,
+    LEVEL_NAME_TO_VALUE_VARIANTS[4].0,
+];
+
+impl FromStr for Level {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        LEVEL_NAME_TO_VALUE_VARIANTS
+            .iter()
+            .find(|(name, _)| *name == s)
+            .map(|(_, target)| target.clone())
+            .ok_or_else(|| format!("Unrecognized input: {}", s))
+    }
+}
+
+#[derive(clap::Parser)]
+struct Args {
+    #[clap(long = "level", possible_values=LEVEL_POSSIBLE_VALUES)]
+    level: Level,
+}
+```
+
+変更点では以下の通り。
+
+- `Level` 構造体の取りうる値ではなく、コマンドラインオプションに指定できる文字列を配列定数で定義する
+- `Level` 構造体は、`clap::ArgEnum` ではなく、`std::str::FromStr` を実装
+- `Args.level` に `possible_values` を指定する
 
 [^1]: [Will array's map function be const at some point? - Rust Internals](https://internals.rust-lang.org/t/will-arrays-map-function-be-const-at-some-point/16419)
