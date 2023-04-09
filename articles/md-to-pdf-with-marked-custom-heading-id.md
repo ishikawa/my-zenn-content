@@ -12,13 +12,13 @@ published: false
 
 ## md-to-pdf の紹介
 
-VSCode エディタには、Markdown ファイルを PDF にエクスポートするための多くの拡張機能が存在する。例えば、[Markdown Preview Enhanced](https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-enhanced) や [Markdown PDF](https://marketplace.visualstudio.com/items?itemName=yzane.markdown-pdf) を使用することで、ひとつのMarkdown ファイルを簡単に PDF に変換することができる。
+VSCode エディタには、Markdown ファイルを PDF にエクスポートするための多くの拡張機能が存在する。たとえば、[Markdown Preview Enhanced](https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-enhanced) や [Markdown PDF](https://marketplace.visualstudio.com/items?itemName=yzane.markdown-pdf) を使用することで、ひとつのMarkdown ファイルを簡単に PDF に変換することができる。
 
-しかし、今回は別の手段として [md-to-pdf](https://github.com/simonhaenisch/md-to-pdf) [^1] を紹介したい。md-to-pdfを使用することで、複数のMarkdown ファイルをひとつの PDF 文書にまとめることができる。それだけでなく、コマンドラインで操作できるため、CI/CDパイプラインに組み込むことができる（今後もアップデートがありうる文書では重要）。
+しかし、今回は別の手段として [md-to-pdf](https://github.com/simonhaenisch/md-to-pdf) [^1] を紹介したい。md-to-pdf を使用することで、複数のMarkdown ファイルをひとつの PDF 文書にまとめることができる。それだけでなく、コマンドラインで操作できるため、CI/CDパイプラインに組み込むことができる（今後もアップデートがありうる文書では重要）。
 
 また、`npm` で簡単にインストールできるし、`md-to-pdf` のコマンド一発で PDF を出力できるので、普段使いのツールとしても気軽に使うことができる。
 
-md-to-pdf の基本的な使用方法に関しては[公式のページ](https://www.npmjs.com/package/md-to-pdf)や他の記事に譲るとして、この記事では、Markdown の Heading に独自のIDを割り当てる方法を紹介したい。
+md-to-pdf の基本的な使用方法に関しては[公式のページ](https://www.npmjs.com/package/md-to-pdf)や他の記事に譲るとして、この記事では、Markdown の Heading に独自の ID を割り当てる方法を紹介したい。
 
 ## md-to-pdf で独自の Heading ID を指定したい
 
