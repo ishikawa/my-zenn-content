@@ -3,7 +3,7 @@ title: "md-to-pdf で Markdown から PDF に変換: 独自の Heading ID を指
 emoji: "📝"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["markdown"]
-published: false
+published: true
 ---
 
 業務では、社内で扱う情報や外部へ提出する文書など、PDF 形式で情報を共有する必要に迫られることがある。しかし、エンジニアにとっては、プログラムのソースコードやドキュメントなどは普段から Markdown や plain text で取り扱い、そのまま共有することに慣れているため、PDF 形式での情報共有に苦手意識を抱く人も多いのではないだろうか。
