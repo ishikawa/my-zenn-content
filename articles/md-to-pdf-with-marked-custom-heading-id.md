@@ -1,5 +1,5 @@
 ---
-title: "md-to-pdf で Markdown から PDF に変換: 独自の Heading ID を指定する"
+title: "md-to-pdf で Markdown から PDF に変換: 見出しに独自の ID を指定する"
 emoji: "📝"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["markdown"]
@@ -18,19 +18,19 @@ VSCode エディタには、Markdown ファイルを PDF にエクスポート�
 
 また、`npm` で簡単にインストールできるし、`md-to-pdf` のコマンド一発で PDF を出力できるので、普段使いのツールとしても気軽に使うことができる。
 
-md-to-pdf の基本的な使用方法に関しては[公式のページ](https://www.npmjs.com/package/md-to-pdf)や他の記事に譲るとして、この記事では、Markdown の Heading に独自の ID を割り当てる方法を紹介したい。
+md-to-pdf の基本的な使用方法に関しては[公式のページ](https://www.npmjs.com/package/md-to-pdf)や他の記事に譲るとして、この記事では、Markdown の見出しに独自の ID を割り当てる方法を紹介したい。
 
-## md-to-pdf で独自の Heading ID を指定したい
+## md-to-pdf で見出しに独自の ID を指定したい
 
-md-to-pdf のデフォルト設定では、Heading の ID がタイトルから自動で振られる。
+md-to-pdf のデフォルト設定では、見出しの ID が見出しのタイトルから自動で振られる。
 
 しかし、これではタイトルを変更すると ID も変わってしまい、他の箇所から参照しているリンクが壊れてしまう。やってみると分かるのだが、マニュアルのように目次が必須の文書だと、この仕様はけっこうつらい。
 
-そこで、この記事では、md-to-pdf を使って独自の ID を指定する方法を紹介したい。これによって、Heading に必要な ID を指定することができ、タイトルの変更にも柔軟に対応できるようになる。
+そこで、この記事では、md-to-pdf を使って独自の ID を指定する方法を紹介したい。これによって、見出しに必要な ID を指定することができ、タイトルの変更にも柔軟に対応できるようになる。
 
-## Markdown の拡張構文: 独自 Heading ID
+## Markdown の拡張構文: 見出しに独自 ID
 
-まずは、Markdown の[拡張構文](https://www.markdownguide.org/extended-syntax)で[独自の Heading ID を指定する構文](https://www.markdownguide.org/extended-syntax/#heading-ids)を確認しよう。
+まずは、Markdown の[拡張構文](https://www.markdownguide.org/extended-syntax)で[見出しに独自の ID を指定する構文](https://www.markdownguide.org/extended-syntax/#heading-ids)を確認しよう。
 
 ```
 ### My Great Heading {#custom-id}
@@ -78,7 +78,7 @@ module.exports = {
 $ md-to-pdf --config-file md-to-pdf.config.js
 ```
 
-これで、md-to-pdf で独自の Heading ID を使えるようになった。
+これで、md-to-pdf で見出しに独自の ID を使えるようになった。
 
 md-to-pdf には他にもタイトルページの設定やカスタムスタイルシートによる調整など、痒いところに手が届く設定が用意されている。オプションについては [README](https://github.com/simonhaenisch/md-to-pdf/blob/master/readme.md) に書かれているので、使う前に一度確認してみてほしい。
 
